@@ -1,7 +1,7 @@
 `timescale 1ns / 1ps
 
 
-module PE #(parameter  int   ABREG = 1,
+module PE_CASC #(parameter  int   ABREG = 1,
                        int   MREG = 1,
                        int   FIRST = 0,
             localparam int   DSP_REG_LEVEL = 1+ABREG+MREG,
@@ -177,7 +177,7 @@ module PE #(parameter  int   ABREG = 1,
     endgenerate
     
     
-    PE_AU #(.ABREG(ABREG), .MREG(MREG), .CREG(1)) PE_AU_inst (
+    PE_AU_CASC #(.ABREG(ABREG), .MREG(MREG), .CREG(1)) PE_AU_CASC_inst (
 
         .clock_i   (clock_i),
         

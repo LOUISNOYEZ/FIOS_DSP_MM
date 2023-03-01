@@ -1,19 +1,18 @@
 `timescale 1ns / 1ps
 
 
-module top #(parameter  string CONFIGURATION = "FOLD",
-                        int    LOOP_DELAY = 0,
+module MM_top #(parameter  string CONFIGURATION = "FOLD",
                         int    ABREG = 1,
                         int    MREG = 1,
                         int    CREG = 1,
-                        int    ADD_CORRECTION = 0,
-                        int    RES_DELAY = 0,
+                        int    LOOP_DELAY = 0,
+                        int    CASCADE = 0,
                         int    s = 8,
              localparam int    DSP_REG_LEVEL = ABREG+MREG+1,
-             localparam int    PE_DELAY = (DSP_REG_LEVEL == 1) ? 5+RES_DELAY :
-                                          (DSP_REG_LEVEL == 2) ? 6+RES_DELAY :
-                                          (DSP_REG_LEVEL == 3) ? 8+RES_DELAY :
-                                          5+RES_DELAY,
+             localparam int   PE_DELAY = (DSP_REG_LEVEL == 1) ? 5 + ((CREG && CASCADE == 0) ? 1 : 0) :
+                                         (DSP_REG_LEVEL == 2) ? 6 + ((CREG && CASCADE == 0) ? 1 : 0) :
+                                         (DSP_REG_LEVEL == 3) ? 8 + ((CREG && CASCADE == 0) ? 1 : 0) :
+                                         5 + ((CREG && CASCADE == 0) ? 1 : 0),
                         int    PE_NB = (CONFIGURATION == "FOLD") ? (2*s+2+DSP_REG_LEVEL-1)/PE_DELAY+1 :
                                        s                                                               ) (
         input clock_i, reset_i,
@@ -160,37 +159,75 @@ module top #(parameter  string CONFIGURATION = "FOLD",
     end
     
     
-    FIOS #(.CONFIGURATION(CONFIGURATION), .LOOP_DELAY(LOOP_DELAY), 
-           .ABREG(ABREG), .MREG(MREG), .CREG(CREG), .ADD_CORRECTION(ADD_CORRECTION), .RES_DELAY(RES_DELAY), .s(s)) FIOS_inst (
-        .clock_i(clock_i), .reset_i(reset_i),
-        
-        .start_i(FIOS_start),
-
-        
-        .p_prime_0_i(p_prime_0_reg),
-        
-        .a_i(a_reg[PE_NB*17-1:0]),
-        
-        .b_i(b_reg[16:0]),
-        .p_i(p_reg[16:0]),
-        
-        
-        .a_shift_o(a_shift),
-        
-        .b_fetch_o(b_fetch),
-        .p_fetch_o(p_fetch),
-        
-        .RES_push_o(RES_push),
-        
-        .done_o(FIOS_done),
-        
-        
-        .RES_o(RES)
+    generate
     
-    );
+        if (CASCADE == 1) begin
+    
+            FIOS_CASC #(.CONFIGURATION(CONFIGURATION), .ABREG(ABREG), .MREG(MREG), .LOOP_DELAY(LOOP_DELAY), .s(s)) FIOS_CASC_inst (
+                .clock_i(clock_i), .reset_i(reset_i),
+                
+                .start_i(FIOS_start),
+        
+                
+                .p_prime_0_i(p_prime_0_reg),
+                
+                .a_i(a_reg[PE_NB*17-1:0]),
+                
+                .b_i(b_reg[16:0]),
+                .p_i(p_reg[16:0]),
+                
+                
+                .a_shift_o(a_shift),
+                
+                .b_fetch_o(b_fetch),
+                .p_fetch_o(p_fetch),
+                
+                .RES_push_o(RES_push),
+                
+                .done_o(FIOS_done),
+                
+                
+                .RES_o(RES)
+            
+            );
+            
+        end else begin
+        
+        
+            FIOS_NOCASC #(.CONFIGURATION(CONFIGURATION), .ABREG(ABREG), .MREG(MREG), .CREG(CREG), .s(s)) FIOS_NOCASC_inst (
+                .clock_i(clock_i), .reset_i(reset_i),
+                
+                .start_i(FIOS_start),
+        
+                
+                .p_prime_0_i(p_prime_0_reg),
+                
+                .a_i(a_reg[PE_NB*17-1:0]),
+                
+                .b_i(b_reg[16:0]),
+                .p_i(p_reg[16:0]),
+                
+                
+                .a_shift_o(a_shift),
+                
+                .b_fetch_o(b_fetch),
+                .p_fetch_o(p_fetch),
+                
+                .RES_push_o(RES_push),
+                
+                .done_o(FIOS_done),
+                
+                
+                .RES_o(RES)
+            
+            );
+        
+        end
+    
+    endgenerate
 
 
-    top_control #(.s(s)) top_control_inst (
+    MM_top_control #(.s(s)) MM_top_control_inst (
         .clock_i(clock_i), .reset_i(reset_i),
         
         .start_i(start_i),

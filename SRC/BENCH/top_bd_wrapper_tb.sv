@@ -16,7 +16,7 @@ module top_bd_wrapper_tb();
     // required to slice operands. Note that WIDTH+2 is used
     // instead of WIDTH to compute s in order not to have to perform
     // the final subtraction in the Montgomery Algorithm (see paper).
-    localparam WIDTH = 4096;
+    localparam WIDTH = 256;
     localparam s = (WIDTH+1)/17+1;
 
     // Global clock reset and start signals of the FIOS multiplier design.
@@ -91,6 +91,9 @@ module top_bd_wrapper_tb();
     
     // A counter is used to count the numbers of test vectors tested.
     int count = 0;
+    int SUCCESS_COUNT = 0;
+    
+    string success_string;
 
     initial begin
     
@@ -204,6 +207,7 @@ module top_bd_wrapper_tb();
         // Computed result is compared to the expected result and the test vector count is incremented.       
         if(res == verif_res) begin
             $display("test vector %0d match at %0t ps.", count, $realtime);
+            SUCCESS_COUNT <= SUCCESS_COUNT + 1;
         end else begin
             $display("test vector %0d mismatch at %0t ps.", count, $realtime);
         end
@@ -214,10 +218,23 @@ module top_bd_wrapper_tb();
         
         end
 
+
+
+        if (SUCCESS_COUNT-1 == count) begin
+            success_string = "SUCCESS";
+            $display("SUCCESS");
+        end else begin
+            success_string = "FAILURE";
+            $display("FAILURE");
+        end
+
+        $stop;
+
     end
 
 
 endmodule
+
 
 
 

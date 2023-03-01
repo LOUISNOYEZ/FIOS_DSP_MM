@@ -3,14 +3,17 @@
 // This module is a verilog wrapper for the top module.
 // It acts as an interface with the rest of the block design, the Block RAM and the processor.
 
-module top_v_wrapper #(// Bit width of the operands and number of 17 bits blocks
+module MM_top_v_wrapper #(// Bit width of the operands and number of 17 bits blocks
                        // required to slice operands. Note that WIDTH+2 is used
                        // instead of WIDTH to compute s in order not to have to perform
                        // the final subtraction in the Montgomery Algorithm.
-                       parameter  integer CONFIGURATION = 1,
-                                  integer LOOP_DELAY = 0,
+                       parameter  integer CONFIGURATION = 0,
+                        //parameter string CONFIGURATION = "FOLD",
                                   integer ABREG = 1,
                                   integer MREG = 1,
+                                  integer CREG = 1,
+                                  integer CASCADE = 0,
+                                  integer LOOP_DELAY = 0,
                                   integer WIDTH = 256,
                        localparam integer s = ((WIDTH+1)/17+1))
     (
@@ -55,8 +58,7 @@ module top_v_wrapper #(// Bit width of the operands and number of 17 bits blocks
     wire [16:0] BRAM_din;
     
     
-    top #(.CONFIGURATION((CONFIGURATION == 1) ? "FOLD" : "EXPAND"), .LOOP_DELAY(LOOP_DELAY), 
-          .ABREG(ABREG), .MREG(MREG), .s(s)) top_inst (
+    MM_top #(.CONFIGURATION(CONFIGURATION == 1 ? "FOLD" : "EXPAND"), .ABREG(ABREG), .MREG(MREG), .CREG(CREG), .CASCADE(CASCADE), .LOOP_DELAY(LOOP_DELAY), .s(s)) MM_top_inst (
         .clock_i(clock_i), .reset_i(reset_i),
         
         .start_i(start_i),

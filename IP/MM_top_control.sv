@@ -1,7 +1,7 @@
 `timescale 1ns / 1ps
 
 
-module top_control #(parameter s = 8) (
+module MM_top_control #(parameter s = 8) (
         input clock_i, reset_i,
         
         input start_i,

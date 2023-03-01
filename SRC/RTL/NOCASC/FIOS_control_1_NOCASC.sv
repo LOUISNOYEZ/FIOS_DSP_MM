@@ -8,9 +8,8 @@
 // A counter is used to count the iteration of the inner loop of the FIOS multiplication.
 // The FSM terminates once s iteration of the inner loop have occured.
 
-module FIOS_control_1 #(parameter s = 16,
-                                  int CREG = 0,
-                                  int ADD_CORRECTION = 0) (
+module FIOS_control_1_NOCASC #(parameter s = 16,
+                                  int CREG = 0) (
     input clock_i, reset_i,
     
     
@@ -123,7 +122,7 @@ module FIOS_control_1 #(parameter s = 16,
         
                                 CREG_en_o = 1;
         
-                                OPMODE_o = ADD_CORRECTION == 1 ? 9'b000000101 : 9'b110000101;
+                                OPMODE_o = 9'b110000101;
                                 
                                 a_shift_o = 0;
                                 
@@ -179,7 +178,7 @@ module FIOS_control_1 #(parameter s = 16,
         
                                 mux_A_sel_o = 1;
                                 mux_B_sel_o = 2;
-                                mux_C_sel_o = (CREG == 0) ? 1 : 2;
+                                mux_C_sel_o = (CREG) ? 2 : 1;
         
                                 CREG_en_o = 1;
         

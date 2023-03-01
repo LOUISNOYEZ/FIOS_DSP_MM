@@ -8,7 +8,7 @@
 // A counter is used to count the iteration of the inner loop of the FIOS multiplication.
 // The FSM terminates once s iteration of the inner loop have occured.
 
-module FIOS_control_3 #(parameter s = 16) (
+module FIOS_control_3_CASC #(parameter s = 16) (
     input clock_i, reset_i,
     
     input start_i,

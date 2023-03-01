@@ -8,7 +8,8 @@
 // A counter is used to count the iteration of the inner loop of the FIOS multiplication.
 // The FSM terminates once s iteration of the inner loop have occured.
 
-module FIOS_control_2 #(parameter s = 16) (
+module FIOS_control_2_NOCASC #(parameter s = 16,
+                                  int CREG = 0) (
     input clock_i, reset_i,
     
     input start_i,
@@ -165,7 +166,7 @@ module FIOS_control_2 #(parameter s = 16) (
                                 
                                 CREG_en_o = 1;
         
-                                OPMODE_o = 9'b000010101;
+                                OPMODE_o = 9'b110000101;
                                
                                 RES_delay_en_o = 0;
                                 
@@ -199,7 +200,7 @@ module FIOS_control_2 #(parameter s = 16) (
                                 
                                 CREG_en_o = 0;
         
-                                OPMODE_o = 9'b000010101;
+                                OPMODE_o = 9'b110000101;
                                
                                 RES_delay_en_o = 1;
                                 
@@ -263,13 +264,13 @@ module FIOS_control_2 #(parameter s = 16) (
         
                                 mux_A_sel_o = 1;
                                 mux_B_sel_o = 2;
-                                mux_C_sel_o = 1;
+                                mux_C_sel_o = (CREG) ? 1 : 0;
                                 
-                                CREG_en_o = 1;
+                                CREG_en_o = (CREG) ? 1 : 0;
         
-                                OPMODE_o = 9'b000010101;
+                                OPMODE_o = 9'b110000101;
                                
-                                RES_delay_en_o = 1;
+                                RES_delay_en_o = (CREG) ? 1 : 0;
                                 
                                 C_input_delay_en_o = 0;
                                
@@ -339,7 +340,7 @@ module FIOS_control_2 #(parameter s = 16) (
                                
                                 RES_delay_en_o = 1;
                                 
-                                C_input_delay_en_o = 0;
+                                C_input_delay_en_o = (CREG) ? 1 : 0;
                                
                                 a_shift_o = 0;
                                
@@ -365,7 +366,7 @@ module FIOS_control_2 #(parameter s = 16) (
         
                                 mux_A_sel_o = 0;
                                 mux_B_sel_o = 0;
-                                mux_C_sel_o = 2;
+                                mux_C_sel_o = (CREG) ? 2 : 1;
                                 
                                 CREG_en_o = 1;
         
@@ -373,7 +374,7 @@ module FIOS_control_2 #(parameter s = 16) (
                                
                                 RES_delay_en_o = 0;
                                 
-                                C_input_delay_en_o = 1;
+                                C_input_delay_en_o = (CREG) ? 0 : 1;
                                
                                 a_shift_o = 0;
                                
@@ -407,7 +408,7 @@ module FIOS_control_2 #(parameter s = 16) (
                                
                                 RES_delay_en_o = 0;
                                 
-                                C_input_delay_en_o = 0;
+                                C_input_delay_en_o = (CREG) ? 1 : 0;
                                
                                 a_shift_o = 0;
                                
@@ -441,7 +442,7 @@ module FIOS_control_2 #(parameter s = 16) (
                                
                                 RES_delay_en_o = 0;
                                 
-                                C_input_delay_en_o = 0;
+                                C_input_delay_en_o = (CREG) ? 1 : 0;
                                
                                 a_shift_o = 0;
                                
@@ -475,7 +476,7 @@ module FIOS_control_2 #(parameter s = 16) (
                                
                                 RES_delay_en_o = 0;
                                 
-                                C_input_delay_en_o = 1;
+                                C_input_delay_en_o = (CREG) ? 0 : 1;
                                
                                 a_shift_o = 0;
                                

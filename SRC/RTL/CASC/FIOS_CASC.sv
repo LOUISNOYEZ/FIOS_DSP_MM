@@ -2,7 +2,7 @@
 
 // This module contains the FIOS multiplier as well as its control logic.
 
-module FIOS #(parameter  string CONFIGURATION = "EXPAND",
+module FIOS_CASC #(parameter  string CONFIGURATION = "EXPAND",
                          int    LOOP_DELAY = 0,
                          int    ABREG = 1,
                          int    MREG = 1,
@@ -177,7 +177,7 @@ module FIOS #(parameter  string CONFIGURATION = "EXPAND",
     generate
         if (DSP_REG_LEVEL == 1) begin
 
-            FIOS_control_1 #(.s(s)) FIOS_control_1_inst (
+            FIOS_control_1_CASC #(.s(s)) FIOS_control_1_CASC_inst (
                 .clock_i(clock_i), .reset_i(reset_i),
                 
                 .start_i(start[0]),
@@ -209,7 +209,7 @@ module FIOS #(parameter  string CONFIGURATION = "EXPAND",
             
         end else if (DSP_REG_LEVEL == 2) begin
         
-            FIOS_control_2 #(.s(s)) FIOS_control_2_inst (
+            FIOS_control_2_CASC #(.s(s)) FIOS_control_2_CASC_inst (
                 .clock_i(clock_i), .reset_i(reset_i),
                 
                 .start_i(start[0]),
@@ -245,7 +245,7 @@ module FIOS #(parameter  string CONFIGURATION = "EXPAND",
             
         end else begin
         
-            FIOS_control_3 #(.s(s)) FIOS_control_3_inst (
+            FIOS_control_3_CASC #(.s(s)) FIOS_control_3_CASC_inst (
                 .clock_i(clock_i), .reset_i(reset_i),
                 
                 .start_i(start[0]),
@@ -347,8 +347,8 @@ module FIOS #(parameter  string CONFIGURATION = "EXPAND",
     endgenerate
     
     
-    FIOS_MM #(.CONFIGURATION(CONFIGURATION), .LOOP_DELAY(LOOP_DELAY), 
-              .ABREG(ABREG), .MREG(MREG), .s(s)) FIOS_MM_inst (
+    FIOS_MM_CASC #(.CONFIGURATION(CONFIGURATION), .LOOP_DELAY(LOOP_DELAY), 
+              .ABREG(ABREG), .MREG(MREG), .s(s)) FIOS_MM_CASC_inst (
         
         .clock_i(clock_i),
         

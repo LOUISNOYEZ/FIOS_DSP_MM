@@ -8,7 +8,7 @@
 // (PREG is always set to one).
 
 
-module PE_AU #(parameter ABREG = 1,
+module PE_AU_NOCASC #(parameter ABREG = 1,
                          MREG = 1,
                          CREG = 1,
                localparam DSP_REG_LEVEL = 1+ABREG+MREG) (

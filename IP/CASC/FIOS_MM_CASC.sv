@@ -2,7 +2,7 @@
 
 // This module is the Montgomery FIOS multiplier.
 
-module FIOS_MM #(parameter  string CONFIGURATION = "EXPAND",
+module FIOS_MM_CASC #(parameter  string CONFIGURATION = "EXPAND",
                             int    LOOP_DELAY = 0,
                             int    ABREG = 1,
                             int    MREG = 1,
@@ -278,7 +278,7 @@ module FIOS_MM #(parameter  string CONFIGURATION = "EXPAND",
             
             end
     
-            PE #(.ABREG(ABREG), .MREG(MREG), .FIRST(((i == 0 || i == 168) && ((CONFIGURATION == "FOLD") || DSP_REG_LEVEL == 2)) ? 1 : 0)) PE_inst (
+            PE_CASC #(.ABREG(ABREG), .MREG(MREG), .FIRST(((i == 0 || i == 168) && ((CONFIGURATION == "FOLD") || DSP_REG_LEVEL == 2)) ? 1 : 0)) PE_CASC_inst (
                 .clock_i(clock_i),
                 
                 .a_reg_en_i(a_reg_en_i[i]),

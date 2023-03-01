@@ -1,0 +1,5 @@
+# This file is automatically written.  Do not modify.
+proc gen_USERPARAMETER_CREG_ENABLEMENT {CASCADE } {expr $CASCADE == false}
+proc gen_USERPARAMETER_CREG_VALUE {CASCADE } {expr $CASCADE == true}
+proc gen_USERPARAMETER_LOOP_DELAY_ENABLEMENT {CASCADE } {expr $CASCADE == true}
+proc gen_USERPARAMETER_LOOP_DELAY_VALUE {CASCADE } {expr $CASCADE == false ? 0 : 0}

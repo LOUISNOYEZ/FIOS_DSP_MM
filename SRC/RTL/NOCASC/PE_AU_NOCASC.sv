@@ -8,7 +8,7 @@
 // (PREG is always set to one).
 
 
-module PE_AU #(parameter ABREG = 1,
+module PE_AU_NOCASC #(parameter ABREG = 1,
                          MREG = 1,
                          CREG = 1,
                localparam DSP_REG_LEVEL = 1+ABREG+MREG) (
@@ -27,13 +27,9 @@ module PE_AU #(parameter ABREG = 1,
     input [16:0] A_i,
     input [16:0] B_i,
     input [33:0] C_i,
-    
-    input [47:0] PCIN_i,
 
 
-    output [33:0] P_o,
-    
-    output [47:0] PCOUT_o
+    output [33:0] P_o
     
     );
 
@@ -65,7 +61,7 @@ module PE_AU #(parameter ABREG = 1,
         .BCOUT(),              // 18-bit output: B cascade
         .CARRYCASCOUT(),       // 1-bit output: Cascade carry
         .MULTSIGNOUT(),        // 1-bit output: Multiplier sign cascade
-        .PCOUT(PCOUT_o),              // 48-bit output: Cascade output
+        .PCOUT(),              // 48-bit output: Cascade output
         // Control outputs: Control Inputs/Status Bits
         .OVERFLOW(),           // 1-bit output: Overflow in add/acc
         .PATTERNBDETECT(),     // 1-bit output: Pattern bar detect
@@ -86,7 +82,7 @@ module PE_AU #(parameter ABREG = 1,
         .BCIN(),               // 18-bit input: B cascade
         .CARRYCASCIN(),        // 1-bit input: Cascade carry
         .MULTSIGNIN(),         // 1-bit input: Multiplier sign cascade
-        .PCIN(PCIN_i),               // 48-bit input: P cascade
+        .PCIN(),               // 48-bit input: P cascade
         // Data inputs: Data Ports
         .A({{13{1'b0}}, A_i}), // 30-bit input: A data
         .B({1'b0, B_i}),       // 18-bit input: B data

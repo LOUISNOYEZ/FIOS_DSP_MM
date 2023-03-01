@@ -2,19 +2,16 @@
 
 // This module contains the FIOS multiplier as well as its control logic.
 
-module FIOS #(parameter  string CONFIGURATION = "EXPAND",
-                         int    LOOP_DELAY = 0,
+module FIOS_NOCASC #(parameter  string CONFIGURATION = "EXPAND",
                          int    ABREG = 1,
                          int    MREG = 1,
                          int    CREG = 1,
-                         int    ADD_CORRECTION = 0,
-                         int    RES_DELAY = 0,
                          int    s = 8,
               localparam int   DSP_REG_LEVEL = ABREG+MREG+1,
-              localparam int   PE_DELAY = (DSP_REG_LEVEL == 1) ? 5+RES_DELAY :
-                                          (DSP_REG_LEVEL == 2) ? 6+RES_DELAY :
-                                          (DSP_REG_LEVEL == 3) ? 8+RES_DELAY :
-                                          5+RES_DELAY,
+              localparam int   PE_DELAY = (DSP_REG_LEVEL == 1) ? 5 + (CREG ? 1 : 0):
+                                          (DSP_REG_LEVEL == 2) ? 6 + (CREG ? 1 : 0) :
+                                          (DSP_REG_LEVEL == 3) ? 8 + (CREG ? 1 : 0) :
+                                          5 + (CREG ? 1 : 0),
                          int   PE_NB = (CONFIGURATION == "FOLD") ? (2*s+2+DSP_REG_LEVEL-1)/PE_DELAY+1 :
                                        s) (                            
     input clock_i, reset_i,
@@ -79,6 +76,19 @@ module FIOS #(parameter  string CONFIGURATION = "EXPAND",
     wire p_fetch;
         
     reg C_input_delay_en [0:PE_NB-1];
+    
+    reg end_reg;
+    
+    always @ (posedge clock_i) begin
+    
+        if (reset_i)
+            end_reg <= 0;
+        else if (done_o)
+            end_reg <= 1;
+        else
+            end_reg <= end_reg;
+    
+    end
         
     generate
         if (CONFIGURATION == "FOLD") begin
@@ -90,7 +100,7 @@ module FIOS #(parameter  string CONFIGURATION = "EXPAND",
         
             always @ (posedge clock_i) begin
 
-                if (reset_i || done_o)
+                if (reset_i || end_reg)
                     FIOS_input_sel_reg <= 0;
                 else if (done[0] && ~FIOS_input_sel_reg)
                     FIOS_input_sel_reg <= 1;
@@ -180,7 +190,7 @@ module FIOS #(parameter  string CONFIGURATION = "EXPAND",
     generate
         if (DSP_REG_LEVEL == 1) begin
 
-            FIOS_control_1 #(.s(s), .CREG(CREG), .ADD_CORRECTION(ADD_CORRECTION)) FIOS_control_1_inst (
+            FIOS_control_1_NOCASC #(.s(s), .CREG(CREG)) FIOS_control_1_NOCASC_inst (
                 .clock_i(clock_i), .reset_i(reset_i),
                 
                 .start_i(start[0]),
@@ -212,7 +222,7 @@ module FIOS #(parameter  string CONFIGURATION = "EXPAND",
             
         end else if (DSP_REG_LEVEL == 2) begin
         
-            FIOS_control_2 #(.s(s), .CREG(CREG), .ADD_CORRECTION(ADD_CORRECTION)) FIOS_control_2_inst (
+            FIOS_control_2_NOCASC #(.s(s), .CREG(CREG)) FIOS_control_2__NOCASC_inst (
                 .clock_i(clock_i), .reset_i(reset_i),
                 
                 .start_i(start[0]),
@@ -248,7 +258,7 @@ module FIOS #(parameter  string CONFIGURATION = "EXPAND",
             
         end else begin
         
-            FIOS_control_3 #(.s(s), .CREG(CREG), .ADD_CORRECTION(ADD_CORRECTION)) FIOS_control_3_inst (
+            FIOS_control_3_NOCASC #(.s(s), .CREG(CREG)) FIOS_control_3_NOCASC_inst (
                 .clock_i(clock_i), .reset_i(reset_i),
                 
                 .start_i(start[0]),
@@ -308,7 +318,7 @@ module FIOS #(parameter  string CONFIGURATION = "EXPAND",
 
             end else begin
             
-                delay_line #(.WIDTH(24), .DELAY((i == PE_NB-1) ? PE_DELAY+LOOP_DELAY : PE_DELAY)) control_dly_inst (
+                delay_line #(.WIDTH(24), .DELAY((i == PE_NB-1) ? PE_DELAY : PE_DELAY)) control_dly_inst (
                     .clock_i(clock_i), .reset_i(1'b0), .en_i(1'b1),
                     
                     .data_i({a_reg_en[i],
@@ -350,8 +360,7 @@ module FIOS #(parameter  string CONFIGURATION = "EXPAND",
     endgenerate
     
     
-    FIOS_MM #(.CONFIGURATION(CONFIGURATION), .LOOP_DELAY(LOOP_DELAY), 
-              .ABREG(ABREG), .MREG(MREG), .CREG(CREG), .ADD_CORRECTION(ADD_CORRECTION), .RES_DELAY(RES_DELAY), .s(s)) FIOS_MM_inst (
+    FIOS_MM_NOCASC #(.CONFIGURATION(CONFIGURATION), .ABREG(ABREG), .MREG(MREG), .CREG(CREG), .s(s)) FIOS_MM_NOCASC_inst (
         
         .clock_i(clock_i),
         

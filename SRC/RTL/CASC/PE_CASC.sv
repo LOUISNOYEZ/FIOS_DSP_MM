@@ -1,10 +1,8 @@
 `timescale 1ns / 1ps
 
 
-module PE #(parameter  int   ABREG = 1,
+module PE_CASC #(parameter  int   ABREG = 1,
                        int   MREG = 1,
-                       int   CREG = 1,
-                       int   ADD_CORRECTION = 0,
                        int   FIRST = 0,
             localparam int   DSP_REG_LEVEL = 1+ABREG+MREG,
             localparam int   FEEDBACK_DELAY = (DSP_REG_LEVEL == 1) ? 1 :
@@ -39,10 +37,17 @@ module PE #(parameter  int   ABREG = 1,
     input  [16:0] C_i,
     input  [16:0] C_input_1_delay_i,
     input  [16:0] C_input_2_delay_i,
+    
+    input [47:0] PCIN_i,
+    input [16:0] PCIN_cancel_i,
         
     output [16:0] p_prime_0_o,
     
-    output [16:0] RES_o
+    output [16:0] RES_o,
+    
+    output [47:0] PCOUT_o,
+    
+    output [16:0] PCIN_cancel_o
     
     );
 
@@ -68,8 +73,8 @@ module PE #(parameter  int   ABREG = 1,
         mux_A_sel_reg <= mux_A_sel_i;
         mux_B_sel_reg <= mux_B_sel_i;
         mux_C_sel_reg <= mux_C_sel_i;
-        RES_delay_en_reg <= RES_delay_en_i;
-        CREG_en_reg <= CREG_en_i;
+        RES_delay_en_reg <= (DSP_REG_LEVEL == 2 && FIRST != 1 && m_reg_en_i) ? 0 : RES_delay_en_i;
+        CREG_en_reg <= (DSP_REG_LEVEL == 2 && FIRST != 1 && m_reg_en_i) ? 0 : CREG_en_i;
         a_reg_en_reg <= a_reg_en_i;
         m_reg_en_reg <= m_reg_en_i;
     
@@ -90,8 +95,6 @@ module PE #(parameter  int   ABREG = 1,
     reg [33:0] RES_delay;    
 
     reg [16:0] C_reg;
-    
-    wire [33:0] corrected_RES;
 
     // Signals p_prime_0_i, a_i, b_i and p_i are registered for better performance.
 
@@ -136,7 +139,7 @@ module PE #(parameter  int   ABREG = 1,
     
         case (mux_A_sel_reg)
             0       : DSP_A_input <= a_reg;
-            1       : DSP_A_input <= (ADD_CORRECTION == 1) ? (m_reg_en_reg) ? RES[16:0] :corrected_RES[16:0] : RES[16:0];
+            1       : DSP_A_input <= RES[16:0];
             2       : DSP_A_input <= m_reg;
             default : DSP_A_input <= 0;
         endcase
@@ -161,10 +164,10 @@ module PE #(parameter  int   ABREG = 1,
     
         always_comb begin
         
-            case (mux_C_sel_reg)
-                0       : DSP_C_input <= (ADD_CORRECTION == 1) ? 0 : C_i;
+            case ((DSP_REG_LEVEL == 2 && FIRST != 1 && m_reg_en_i == 1) ? 1 :mux_C_sel_reg)
+                0       : DSP_C_input <= C_i;
                 1       : DSP_C_input <= RES_delay;
-                2       : DSP_C_input <= (ADD_CORRECTION == 1 && DSP_REG_LEVEL == 1) ? C_i : (ADD_CORRECTION == 1) ? 0 : C_input_1_delay_i;
+                2       : DSP_C_input <= C_input_1_delay_i;
                 3       : DSP_C_input <= (DSP_REG_LEVEL == 3) ? C_input_2_delay_i : 0;
                 default : DSP_C_input <= 0;
             endcase
@@ -174,7 +177,7 @@ module PE #(parameter  int   ABREG = 1,
     endgenerate
     
     
-    PE_AU #(.ABREG(ABREG), .MREG(MREG), .CREG(CREG)) PE_AU_inst (
+    PE_AU_CASC #(.ABREG(ABREG), .MREG(MREG), .CREG(1)) PE_AU_CASC_inst (
 
         .clock_i   (clock_i),
         
@@ -187,8 +190,11 @@ module PE #(parameter  int   ABREG = 1,
         .B_i       (DSP_B_input),
         .C_i       (DSP_C_input),
         
+        .PCIN_i(PCIN_i),
         
-        .P_o       (RES)
+        
+        .P_o       (RES),
+        .PCOUT_o(PCOUT_o)
         
     );
     
@@ -198,18 +204,31 @@ module PE #(parameter  int   ABREG = 1,
     // Only DSP_REG_LEVEL 2 and 3 require additional logic.
     //The CREG register inside the DSP block is sufficient for DSP_REG_LEVEL 1. 
 
+    reg [16:0] PCIN_cancel_reg;
+
     generate
-    
-        if (ADD_CORRECTION == 1) begin
         
-            always @ (posedge clock_i)
-                C_reg <= (DSP_REG_LEVEL == 3 && m_reg_en_reg) ? C_reg : C_i;
-                
-            assign corrected_RES = RES+C_reg;
+        if (FIRST != 1) begin
         
+            if (DSP_REG_LEVEL == 3) begin
+            
+                always @ (posedge clock_i) begin
+                    if (m_reg_en_reg)
+                        PCIN_cancel_reg <= 0;
+                    else
+                        PCIN_cancel_reg <= PCIN_cancel_i;
+                end
+                    
+            end else begin
+            
+                always @ (posedge clock_i)
+                    PCIN_cancel_reg <= PCIN_cancel_i;
+            
+            end
+            
         end
-    
-        if(DSP_REG_LEVEL == 2 && CREG == 1) begin
+        
+        if(DSP_REG_LEVEL == 2 && FIRST == 1) begin
     
             reg m_reg_en_reg_delay;
             
@@ -219,20 +238,20 @@ module PE #(parameter  int   ABREG = 1,
             reg [34:0] RES_delay_prime;
             
             always @ (posedge clock_i)
-                RES_delay_prime <= (ADD_CORRECTION == 1) ? corrected_RES : RES;
+                RES_delay_prime <= RES;
                 
             always @ (posedge clock_i)
                 if (RES_delay_en_reg)
-                    RES_delay <= m_reg_en_reg_delay ? (ADD_CORRECTION == 1) ? corrected_RES : RES : RES_delay_prime;
+                    RES_delay <= m_reg_en_reg_delay ? RES : RES_delay_prime;
                 else
                     RES_delay <= RES_delay;
             
         end else begin
         
-            delay_line #(.WIDTH(34), .DELAY(FEEDBACK_DELAY-CREG)) RES_delay_inst (
+            delay_line #(.WIDTH(34), .DELAY(FEEDBACK_DELAY-1)) RES_delay_inst (
                 .clock_i(clock_i), .reset_i(1'b0), .en_i((DSP_REG_LEVEL == 1) ? 1'b1 : RES_delay_en_reg),
                 
-                .data_i((ADD_CORRECTION == 1) ? corrected_RES : RES),
+                .data_i((FIRST == 1) ? RES : {RES[33:17]-PCIN_cancel_reg, RES[16:0]}),
                 
                 .data_o(RES_delay)
                 
@@ -247,6 +266,8 @@ module PE #(parameter  int   ABREG = 1,
     assign p_prime_0_o = p_prime_0_reg;
 
     assign RES_o = RES[16:0];
+    
+    assign PCIN_cancel_o = RES[33:17];
     
     
 endmodule

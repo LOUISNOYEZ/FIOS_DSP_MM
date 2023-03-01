@@ -24,13 +24,16 @@ create_project -force ${project_name} "${root_folder}/${project_name}" -part xcz
 set_property BOARD_PART xilinx.com:zcu102:part0:3.4 [current_project]
 
 # Import design sources, testbench sources and test vectors
-add_files -fileset sources_1 "${root_folder}/SRC/RTL/NO_CASCADE"
+set_property  ip_repo_paths  "${root_folder}/IP" [current_project]
+update_ip_catalog
+
+add_files -fileset sources_1 "${root_folder}/SRC/RTL"
 add_files -fileset sim_1 "${root_folder}/SRC/BENCH"
 add_files -fileset sim_1 "${root_folder}/VERIFICATION/TEST_VECTORS/TXT"
 
 import_files -force
 
-# Generate the simulation block design, including the design module, a clock wizard, a true dual port standalone BRAM and a processor system reset.
+# Generate the simulation block design, including the design module, a clock wizard and a true dual port BRAM.
 source "${root_folder}/TCL/BD/sim_top_bd_gen.tcl"
 
 # Make and add HDL wrapper for the block design.
