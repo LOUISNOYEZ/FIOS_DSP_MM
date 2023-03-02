@@ -188,7 +188,7 @@ module FIOS_MM_NOCASC #(parameter  string CONFIGURATION = "EXPAND",
                 
             
     
-            PE_NOCASC #(.ABREG(ABREG), .MREG(MREG), .CREG(CREG), .ADD_CORRECTION(0), .FIRST((i == 0) ? 1 : 0)) PE_NOCASC_inst (
+            PE_NOCASC #(.ABREG(ABREG), .MREG(MREG), .CREG(CREG), .FIRST((i == 0) ? 1 : 0)) PE_NOCASC_inst (
                 .clock_i(clock_i),
                 
                 .a_reg_en_i(a_reg_en_i[i]),
