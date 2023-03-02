@@ -17,6 +17,16 @@ proc get_script_folder {} {
 variable script_folder
 set script_folder [_tcl::get_script_folder]
 
+if { ![info exists use_ip] } {
+
+	variable use_ip
+	set use_ip true
+	
+	set_property  ip_repo_paths  "${script_folder}/../../IP" [current_project]
+	update_ip_catalog
+
+}
+
 ################################################################
 # Check if script is running in correct Vivado version.
 ################################################################
@@ -124,11 +134,16 @@ set bCheckIPsPassed 1
 set bCheckIPs 1
 if { $bCheckIPs == 1 } {
    set list_check_ips "\ 
-user.org:user:MM_demo:1.0\
 xilinx.com:ip:blk_mem_gen:8.4\
 xilinx.com:ip:proc_sys_reset:5.0\
 xilinx.com:ip:sim_clk_gen:1.0\
 "
+
+   if { $use_ip } {
+   
+      lappend list_check_ips "user.org:user:MM_demo:1.0"
+   
+   }
 
    set list_ips_missing ""
    common::send_gid_msg -ssname BD::TCL -id 2011 -severity "INFO" "Checking if the following IPs exist in the project's IP catalog: $list_check_ips ."
@@ -145,6 +160,35 @@ xilinx.com:ip:sim_clk_gen:1.0\
       set bCheckIPsPassed 0
    }
 
+}
+
+if { !$use_ip } {
+
+	##################################################################
+	# CHECK Modules
+	##################################################################
+	set bCheckModules 1
+	if { $bCheckModules == 1 } {
+	   set list_check_mods "\ 
+	MM_top_v_wrapper\
+	"
+
+	   set list_mods_missing ""
+	   common::send_gid_msg -ssname BD::TCL -id 2020 -severity "INFO" "Checking if the following modules exist in the project's sources: $list_check_mods ."
+
+	   foreach mod_vlnv $list_check_mods {
+		  if { [can_resolve_reference $mod_vlnv] == 0 } {
+		     lappend list_mods_missing $mod_vlnv
+		  }
+	   }
+
+	   if { $list_mods_missing ne "" } {
+		  catch {common::send_gid_msg -ssname BD::TCL -id 2021 -severity "ERROR" "The following module(s) are not found in the project: $list_mods_missing" }
+		  common::send_gid_msg -ssname BD::TCL -id 2022 -severity "INFO" "Please add source files for the missing module(s) above."
+		  set bCheckIPsPassed 0
+	   }
+	}
+	
 }
 
 if { $bCheckIPsPassed != 1 } {
@@ -164,6 +208,8 @@ proc create_root_design { parentCell } {
 
   variable script_folder
   variable design_name
+  
+  variable use_ip
 
   if { $parentCell eq "" } {
      set parentCell [get_bd_cells /]
@@ -206,13 +252,6 @@ proc create_root_design { parentCell } {
  ] $reset_i
   set start_i [ create_bd_port -dir I start_i ]
 
-  # Create instance: MM_demo_0, and set properties
-  set MM_demo_0 [ create_bd_cell -type ip -vlnv user.org:user:MM_demo:1.0 MM_demo_0 ]
-  set_property -dict [ list \
-   CONFIG.CASCADE {true} \
-   CONFIG.CREG {true} \
- ] $MM_demo_0
-
   # Create instance: blk_mem_gen_0, and set properties
   set blk_mem_gen_0 [ create_bd_cell -type ip -vlnv xilinx.com:ip:blk_mem_gen:8.4 blk_mem_gen_0 ]
   set_property -dict [ list \
@@ -245,17 +284,65 @@ proc create_root_design { parentCell } {
   set_property -dict [ list \
    CONFIG.FREQ_HZ {625000000} \
  ] $sim_clk_gen_0
+ 
+if { !$use_ip } {
+
+  # Create instance: MM_top_v_wrapper_0, and set properties
+  set block_name MM_top_v_wrapper
+  set block_cell_name MM_top_v_wrapper_0
+  if { [catch {set MM_top_v_wrapper_0 [create_bd_cell -type module -reference $block_name $block_cell_name] } errmsg] } {
+     catch {common::send_gid_msg -ssname BD::TCL -id 2095 -severity "ERROR" "Unable to add referenced block <$block_name>. Please add the files for ${block_name}'s definition into the project."}
+     return 1
+   } elseif { $MM_top_v_wrapper_0 eq "" } {
+     catch {common::send_gid_msg -ssname BD::TCL -id 2096 -severity "ERROR" "Unable to referenced block <$block_name>. Please add the files for ${block_name}'s definition into the project."}
+     return 1
+   }
+    set_property -dict [ list \
+   CONFIG.WIDTH {256} \
+ ] $MM_top_v_wrapper_0
+
+  set_property -dict [ list \
+   CONFIG.POLARITY {ACTIVE_HIGH} \
+ ] [get_bd_pins /MM_top_v_wrapper_0/reset_i]
+
+} else {
+
+  # Create instance: MM_demo_0, and set properties
+  set MM_demo_0 [ create_bd_cell -type ip -vlnv user.org:user:MM_demo:1.0 MM_demo_0 ]
+  set_property -dict [ list \
+   CONFIG.CASCADE {true} \
+   CONFIG.CREG {true} \
+   CONFIG.MREG {false} \
+ ] $MM_demo_0
+
+}
 
   # Create interface connections
   connect_bd_intf_net -intf_net BRAM_PORTA_0_1 [get_bd_intf_ports BRAM_PORTA_i] [get_bd_intf_pins blk_mem_gen_0/BRAM_PORTA]
-  connect_bd_intf_net -intf_net MM_demo_0_MBRAM [get_bd_intf_pins MM_demo_0/MBRAM] [get_bd_intf_pins blk_mem_gen_0/BRAM_PORTB]
 
   # Create port connections
-  connect_bd_net -net MM_demo_0_done_o [get_bd_ports done_o] [get_bd_pins MM_demo_0/done_o]
-  connect_bd_net -net clk_wiz_0_clk_out1 [get_bd_pins MM_demo_0/clock_i] [get_bd_pins proc_sys_reset_0/slowest_sync_clk] [get_bd_pins sim_clk_gen_0/clk]
-  connect_bd_net -net proc_sys_reset_0_peripheral_reset [get_bd_pins MM_demo_0/reset_i] [get_bd_pins proc_sys_reset_0/peripheral_reset]
+  connect_bd_net -net done_o_net [get_bd_ports done_o]
+  connect_bd_net -net clk_wiz_0_clk_out1 [get_bd_pins proc_sys_reset_0/slowest_sync_clk] [get_bd_pins sim_clk_gen_0/clk]
+  connect_bd_net -net proc_sys_reset_0_peripheral_reset [get_bd_pins proc_sys_reset_0/peripheral_reset]
   connect_bd_net -net reset_i_1 [get_bd_ports reset_i] [get_bd_pins proc_sys_reset_0/ext_reset_in]
-  connect_bd_net -net start_i_1 [get_bd_ports start_i] [get_bd_pins MM_demo_0/start_i]
+  connect_bd_net -net start_i_1 [get_bd_ports start_i]
+
+  if { !$use_ip } {
+
+	connect_bd_intf_net -intf_net MM_top_v_wrapper_0_MBRAM [get_bd_intf_pins MM_top_v_wrapper_0/MBRAM] [get_bd_intf_pins blk_mem_gen_0/BRAM_PORTB]
+  	connect_bd_net -net done_o_net [get_bd_pins MM_top_v_wrapper_0/done_o]
+  	connect_bd_net -net clk_wiz_0_clk_out1 [get_bd_pins MM_top_v_wrapper_0/clock_i]
+  	connect_bd_net -net proc_sys_reset_0_peripheral_reset [get_bd_pins MM_top_v_wrapper_0/reset_i]
+  	connect_bd_net -net start_i_1 [get_bd_pins MM_top_v_wrapper_0/start_i]  
+
+  } else {
+  
+  	connect_bd_intf_net -intf_net MM_demo_0_MBRAM [get_bd_intf_pins MM_demo_0/MBRAM] [get_bd_intf_pins blk_mem_gen_0/BRAM_PORTB]
+  	connect_bd_net -net done_o_net [get_bd_pins MM_demo_0/done_o]
+  	connect_bd_net -net clk_wiz_0_clk_out1 [get_bd_pins MM_demo_0/clock_i]
+  	connect_bd_net -net proc_sys_reset_0_peripheral_reset [get_bd_pins MM_demo_0/reset_i]
+  	connect_bd_net -net start_i_1 [get_bd_pins MM_demo_0/start_i]  	
+  }
 
   # Create address segments
 

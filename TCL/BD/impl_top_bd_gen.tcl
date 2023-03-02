@@ -17,6 +17,16 @@ proc get_script_folder {} {
 variable script_folder
 set script_folder [_tcl::get_script_folder]
 
+if { ![info exists use_ip] } {
+
+	variable use_ip
+	set use_ip true
+	
+	set_property  ip_repo_paths  "${script_folder}/../../IP" [current_project]
+	update_ip_catalog
+
+}
+
 ################################################################
 # Check if script is running in correct Vivado version.
 ################################################################
@@ -36,13 +46,6 @@ if { [string first $scripts_vivado_version $current_vivado_version] == -1 } {
 
 # To test this script, run the following commands from Vivado Tcl console:
 # source impl_top_bd_script.tcl
-
-
-# The design that will be created by this Tcl script contains the following 
-# module references:
-# top_v_wrapper
-
-# Please add the sources of those modules before sourcing this Tcl script.
 
 # If there is no project opened, this script will create a
 # project, but make sure you do not have an existing project
@@ -139,6 +142,12 @@ xilinx.com:ip:xlslice:1.0\
 xilinx.com:ip:zynq_ultra_ps_e:3.4\
 "
 
+   if { $use_ip } {
+   
+      lappend list_check_ips "user.org:user:MM_demo:1.0"
+   
+   }
+
    set list_ips_missing ""
    common::send_gid_msg -ssname BD::TCL -id 2011 -severity "INFO" "Checking if the following IPs exist in the project's IP catalog: $list_check_ips ."
 
@@ -156,29 +165,33 @@ xilinx.com:ip:zynq_ultra_ps_e:3.4\
 
 }
 
-##################################################################
-# CHECK Modules
-##################################################################
-set bCheckModules 1
-if { $bCheckModules == 1 } {
-   set list_check_mods "\ 
-top_v_wrapper\
-"
+if { !$use_ip } {
 
-   set list_mods_missing ""
-   common::send_gid_msg -ssname BD::TCL -id 2020 -severity "INFO" "Checking if the following modules exist in the project's sources: $list_check_mods ."
+	##################################################################
+	# CHECK Modules
+	##################################################################
+	set bCheckModules 1
+	if { $bCheckModules == 1 } {
+	   set list_check_mods "\ 
+	MM_top_v_wrapper\
+	"
 
-   foreach mod_vlnv $list_check_mods {
-      if { [can_resolve_reference $mod_vlnv] == 0 } {
-         lappend list_mods_missing $mod_vlnv
-      }
-   }
+	   set list_mods_missing ""
+	   common::send_gid_msg -ssname BD::TCL -id 2020 -severity "INFO" "Checking if the following modules exist in the project's sources: $list_check_mods ."
 
-   if { $list_mods_missing ne "" } {
-      catch {common::send_gid_msg -ssname BD::TCL -id 2021 -severity "ERROR" "The following module(s) are not found in the project: $list_mods_missing" }
-      common::send_gid_msg -ssname BD::TCL -id 2022 -severity "INFO" "Please add source files for the missing module(s) above."
-      set bCheckIPsPassed 0
-   }
+	   foreach mod_vlnv $list_check_mods {
+		  if { [can_resolve_reference $mod_vlnv] == 0 } {
+		     lappend list_mods_missing $mod_vlnv
+		  }
+	   }
+
+	   if { $list_mods_missing ne "" } {
+		  catch {common::send_gid_msg -ssname BD::TCL -id 2021 -severity "ERROR" "The following module(s) are not found in the project: $list_mods_missing" }
+		  common::send_gid_msg -ssname BD::TCL -id 2022 -severity "INFO" "Please add source files for the missing module(s) above."
+		  set bCheckIPsPassed 0
+	   }
+	}
+	
 }
 
 if { $bCheckIPsPassed != 1 } {
@@ -195,6 +208,8 @@ if { $bCheckIPsPassed != 1 } {
 # Procedure to create entire design; Provide argument to make
 # procedure reusable. If parentCell is "", will use root.
 proc create_root_design { parentCell } {
+
+  variable use_ip
 
   variable script_folder
   variable design_name
@@ -296,23 +311,37 @@ proc create_root_design { parentCell } {
   # Create instance: rst_ps8_0_99M, and set properties
   set rst_ps8_0_99M [ create_bd_cell -type ip -vlnv xilinx.com:ip:proc_sys_reset:5.0 rst_ps8_0_99M ]
 
-  # Create instance: top_v_wrapper_0, and set properties
-  set block_name top_v_wrapper
-  set block_cell_name top_v_wrapper_0
-  if { [catch {set top_v_wrapper_0 [create_bd_cell -type module -reference $block_name $block_cell_name] } errmsg] } {
+if { !$use_ip } {
+
+  # Create instance: MM_top_v_wrapper_0, and set properties
+  set block_name MM_top_v_wrapper
+  set block_cell_name MM_top_v_wrapper_0
+  if { [catch {set MM_top_v_wrapper_0 [create_bd_cell -type module -reference $block_name $block_cell_name] } errmsg] } {
      catch {common::send_gid_msg -ssname BD::TCL -id 2095 -severity "ERROR" "Unable to add referenced block <$block_name>. Please add the files for ${block_name}'s definition into the project."}
      return 1
-   } elseif { $top_v_wrapper_0 eq "" } {
+   } elseif { $MM_top_v_wrapper_0 eq "" } {
      catch {common::send_gid_msg -ssname BD::TCL -id 2096 -severity "ERROR" "Unable to referenced block <$block_name>. Please add the files for ${block_name}'s definition into the project."}
      return 1
    }
     set_property -dict [ list \
    CONFIG.WIDTH {256} \
- ] $top_v_wrapper_0
+ ] $MM_top_v_wrapper_0
 
   set_property -dict [ list \
    CONFIG.POLARITY {ACTIVE_HIGH} \
- ] [get_bd_pins /top_v_wrapper_0/reset_i]
+ ] [get_bd_pins /MM_top_v_wrapper_0/reset_i]
+
+} else {
+
+  # Create instance: MM_demo_0, and set properties
+  set MM_demo_0 [ create_bd_cell -type ip -vlnv user.org:user:MM_demo:1.0 MM_demo_0 ]
+  set_property -dict [ list \
+   CONFIG.CASCADE {true} \
+   CONFIG.CREG {true} \
+   CONFIG.MREG {false} \
+ ] $MM_demo_0
+
+}
 
   # Create instance: xlslice_0, and set properties
   set xlslice_0 [ create_bd_cell -type ip -vlnv xilinx.com:ip:xlslice:1.0 xlslice_0 ]
@@ -1092,19 +1121,35 @@ Port;FD4A0000;FD4AFFFF;1|FPD;DPDMA;FD4C0000;FD4CFFFF;1|FPD;DDR_XMPU5_CFG;FD05000
   # Create interface connections
   connect_bd_intf_net -intf_net axi_bram_ctrl_0_BRAM_PORTA [get_bd_intf_pins axi_bram_ctrl_0/BRAM_PORTA] [get_bd_intf_pins blk_mem_gen_0/BRAM_PORTA]
   connect_bd_intf_net -intf_net axi_mem_intercon_M00_AXI [get_bd_intf_pins axi_bram_ctrl_0/S_AXI] [get_bd_intf_pins axi_mem_intercon/M00_AXI]
-  connect_bd_intf_net -intf_net top_v_wrapper_0_MBRAM [get_bd_intf_pins blk_mem_gen_0/BRAM_PORTB] [get_bd_intf_pins top_v_wrapper_0/MBRAM]
   connect_bd_intf_net -intf_net user_si570_sysclk_1 [get_bd_intf_ports user_si570_sysclk] [get_bd_intf_pins clk_wiz_0/CLK_IN1_D]
   connect_bd_intf_net -intf_net zynq_ultra_ps_e_0_M_AXI_HPM0_LPD [get_bd_intf_pins axi_mem_intercon/S00_AXI] [get_bd_intf_pins zynq_ultra_ps_e_0/M_AXI_HPM0_LPD]
 
   # Create port connections
-  connect_bd_net -net clk_wiz_0_clk_out1 [get_bd_pins clk_wiz_0/clk_out1] [get_bd_pins proc_sys_reset_0/slowest_sync_clk] [get_bd_pins top_v_wrapper_0/clock_i]
-  connect_bd_net -net proc_sys_reset_0_peripheral_reset [get_bd_pins proc_sys_reset_0/peripheral_reset] [get_bd_pins top_v_wrapper_0/reset_i]
+  connect_bd_net -net clk_wiz_0_clk_out1 [get_bd_pins clk_wiz_0/clk_out1] [get_bd_pins proc_sys_reset_0/slowest_sync_clk]
+  connect_bd_net -net proc_sys_reset_0_peripheral_reset [get_bd_pins proc_sys_reset_0/peripheral_reset]
   connect_bd_net -net rst_ps8_0_99M_peripheral_aresetn [get_bd_pins axi_bram_ctrl_0/s_axi_aresetn] [get_bd_pins axi_mem_intercon/ARESETN] [get_bd_pins axi_mem_intercon/M00_ARESETN] [get_bd_pins axi_mem_intercon/S00_ARESETN] [get_bd_pins rst_ps8_0_99M/peripheral_aresetn]
   connect_bd_net -net xlslice_0_Dout [get_bd_pins proc_sys_reset_0/ext_reset_in] [get_bd_pins xlslice_0/Dout]
-  connect_bd_net -net xlslice_1_Dout [get_bd_pins top_v_wrapper_0/start_i] [get_bd_pins xlslice_1/Dout]
+  connect_bd_net -net xlslice_1_Dout [get_bd_pins xlslice_1/Dout]
   connect_bd_net -net zynq_ultra_ps_e_0_emio_gpio_o [get_bd_pins xlslice_0/Din] [get_bd_pins xlslice_1/Din] [get_bd_pins zynq_ultra_ps_e_0/emio_gpio_o]
   connect_bd_net -net zynq_ultra_ps_e_0_pl_clk0 [get_bd_pins axi_bram_ctrl_0/s_axi_aclk] [get_bd_pins axi_mem_intercon/ACLK] [get_bd_pins axi_mem_intercon/M00_ACLK] [get_bd_pins axi_mem_intercon/S00_ACLK] [get_bd_pins rst_ps8_0_99M/slowest_sync_clk] [get_bd_pins zynq_ultra_ps_e_0/maxihpm0_lpd_aclk] [get_bd_pins zynq_ultra_ps_e_0/pl_clk0]
   connect_bd_net -net zynq_ultra_ps_e_0_pl_resetn0 [get_bd_pins rst_ps8_0_99M/ext_reset_in] [get_bd_pins zynq_ultra_ps_e_0/pl_resetn0]
+
+
+  if { !$use_ip } {
+
+  connect_bd_intf_net -intf_net MBRAM_net [get_bd_intf_pins blk_mem_gen_0/BRAM_PORTB] [get_bd_intf_pins MM_top_v_wrapper_0/MBRAM]
+  connect_bd_net -net clk_wiz_0_clk_out1 [get_bd_pins MM_top_v_wrapper_0/clock_i]
+  connect_bd_net -net proc_sys_reset_0_peripheral_reset [get_bd_pins MM_top_v_wrapper_0/reset_i]
+  connect_bd_net -net xlslice_1_Dout [get_bd_pins MM_top_v_wrapper_0/start_i]
+
+  } else {
+  
+  connect_bd_intf_net -intf_net MBRAM_net [get_bd_intf_pins blk_mem_gen_0/BRAM_PORTB] [get_bd_intf_pins MM_demo_0/MBRAM]
+  connect_bd_net -net clk_wiz_0_clk_out1 [get_bd_pins MM_demo_0/clock_i]
+  connect_bd_net -net proc_sys_reset_0_peripheral_reset [get_bd_pins MM_demo_0/reset_i]
+  connect_bd_net -net xlslice_1_Dout [get_bd_pins MM_demo_0/start_i]
+  
+  }
 
   # Create address segments
   assign_bd_address -offset 0x80000000 -range 0x00002000 -target_address_space [get_bd_addr_spaces zynq_ultra_ps_e_0/Data] [get_bd_addr_segs axi_bram_ctrl_0/S_AXI/Mem0] -force

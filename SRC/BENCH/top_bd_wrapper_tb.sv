@@ -5,7 +5,7 @@
 // store operand data in the Block RAM, launch an FIOS computation
 // and compare the stored result with the expected result.
 
-module top_bd_wrapper_tb();
+module top_bd_wrapper_tb #(parameter WIDTH = 256) ();
 
     // The block design uses a clock wizard which uses
     // a 300 MHz clock to generate the higher frequency clock used by the design.
@@ -16,7 +16,6 @@ module top_bd_wrapper_tb();
     // required to slice operands. Note that WIDTH+2 is used
     // instead of WIDTH to compute s in order not to have to perform
     // the final subtraction in the Montgomery Algorithm (see paper).
-    localparam WIDTH = 256;
     localparam s = (WIDTH+1)/17+1;
 
     // Global clock reset and start signals of the FIOS multiplier design.
