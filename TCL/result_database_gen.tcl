@@ -167,7 +167,13 @@ if {![db1 exists {SELECT 1 FROM implementation WHERE name=$model_name}]} {
 				set res_cc_1st [expr {($PE_DELAY+2)*$s-$PE_DELAY+1+$DSP_REG_LEVEL+((($CONFIGURATION == "FOLD") ? ($LOOP_DELAY+$CASCADE) : 0) + floor($PE_NB/double(168)))*ceil($s/double($PE_NB))}]
 				set res_cc_next [expr {($CONFIGURATION eq "FOLD") ? $res_cc_1st : (2*$s+1+$DSP_REG_LEVEL+floor($PE_NB/double(168))*ceil($s/double($PE_NB)))}]
 				
-				set use_res_list [split [report_utilization -cells impl_top_bd_i/MM_demo_0/inst/MM_top_inst/FIOS_CASC_inst/FIOS_MM_CASC_inst -return_string] "|"]
+				if {$CASCADE} {
+					set CASC_string "CASC"
+				} elseif {!$CASCADE} {
+					set CASC_string "NOCASC"
+				}
+				
+				set use_res_list [split [report_utilization -cells impl_top_bd_i/MM_demo_0/inst/MM_top_inst/FIOS_${CASC_string}_inst/FIOS_MM_${CASC_string}_inst -return_string] "|"]
 				
 				foreach {name} $use_res_list {
 					set trim_name [string trim $name] 
