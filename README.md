@@ -15,7 +15,7 @@ The "ip" / "no_ip" tclargs option will generate the project using either the pac
 
 # Verification
 
-Verification utilities for the design are available in the `VERIFICATION` folder. Test vectors can be generated using the sagemath toolchain and the gen_test_vectors.sage script (see sage gen_test_vectors.sage -h for help). Test vectors stored in the TXT subfolder are imported to the simulation project of the design by default.
+Verification utilities for the design are available in the `VERIFICATION` folder. Test vectors can be generated using the [sagemath toolchain](https://www.sagemath.org/) and the gen_test_vectors.sage script (see sage gen_test_vectors.sage -h for help). Test vectors stored in the TXT subfolder are imported to the simulation project of the design by default.
 
 # Vitis Project
 
@@ -31,8 +31,8 @@ Implementation results can be automatically generated once the project `FIOS_pro
 
 `vivado -mode batch -source TCL/result_database_gen.tcl`
 
-This script will automatically validate the design and generate implementation results for a wide range of different parameters. It will store the implementation results, parameters and simulation results in a database. Although its use is not covered here, a grafana server has been used to vizualize the implementation results data in real-time. 
-Note that this script uses sqlite3 and the tclsqlite library installed under `/usr/lib`.
+This script will automatically validate the design and generate implementation results for a wide range of different parameters. It will store the implementation results, parameters and simulation results in a database. Although its use is not covered here, a [grafana](https://grafana.com/oss/grafana/) server has been used to vizualize the implementation results data in real-time.
+Note that this script uses [sqlite3](https://www.sqlite.org/index.html) and the [tclsqlite](https://cyqlite.sourceforge.io/cgi-bin/sqlite/dir?ci=tip) library installed under `/usr/lib`.
 
 Below is an excerpt of implementation results for WIDTHs ranging from 128 bits to 4096 bits.
 
