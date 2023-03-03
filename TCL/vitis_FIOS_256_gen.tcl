@@ -14,7 +14,7 @@ set root_folder "${script_folder}/.."
 setws "${root_folder}/vitis_workspace"
 
 platform create -name {impl_top_bd_wrapper}\
--hw "${root_folder}/FIOS_impl/impl_top_bd_wrapper.xsa"\
+-hw "${root_folder}/FIOS_project/impl_top_bd_wrapper.xsa"\
 -arch {64-bit} -fsbl-target {psu_cortexa53_0}
 
 platform write

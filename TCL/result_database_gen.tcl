@@ -196,7 +196,7 @@ if {![db1 exists {SELECT 1 FROM implementation WHERE name=$model_name}]} {
 			
 			set prev_success $success
 			
-			set target_freq [expr {1/(double(1)/$target_freq - $slack/double(1000))}]
+			set target_freq [expr {double(round(1/(double(1)/$target_freq - $slack/double(1000))))}]
 			
 			set_property CONFIG.CLKOUT1_REQUESTED_OUT_FREQ ${target_freq} [get_bd_cells clk_wiz_0]
 			
@@ -204,7 +204,7 @@ if {![db1 exists {SELECT 1 FROM implementation WHERE name=$model_name}]} {
 			
 			while {[expr {double([get_property CONFIG.FREQ_HZ [get_bd_pins clk_wiz_0/clk_out1]])/1000000}] == $clk_wiz_freq} {
 			
-				set target_freq [expr {$target_freq + ($success ? 5 : -5)}]
+				set target_freq [expr {$target_freq + ($success ? 1 : -1)}]
 				
 				set_property CONFIG.CLKOUT1_REQUESTED_OUT_FREQ ${target_freq} [get_bd_cells clk_wiz_0]
 			

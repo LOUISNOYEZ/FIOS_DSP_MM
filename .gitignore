@@ -1,3 +1,5 @@
 /DESIGN
-/FIOS_impl
-/FIOS_sim
+/design_db
+/FIOS_project
+/vi*
+/.Xil
