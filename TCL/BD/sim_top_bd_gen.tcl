@@ -282,28 +282,28 @@ proc create_root_design { parentCell } {
   # Create instance: sim_clk_gen_0, and set properties
   set sim_clk_gen_0 [ create_bd_cell -type ip -vlnv xilinx.com:ip:sim_clk_gen:1.0 sim_clk_gen_0 ]
   set_property -dict [ list \
-   CONFIG.FREQ_HZ {625000000} \
+   CONFIG.FREQ_HZ {100000000} \
  ] $sim_clk_gen_0
  
 if { !$use_ip } {
 
-  # Create instance: MM_top_v_wrapper_0, and set properties
+  # Create instance: MM_demo_0, and set properties
   set block_name MM_top_v_wrapper
-  set block_cell_name MM_top_v_wrapper_0
-  if { [catch {set MM_top_v_wrapper_0 [create_bd_cell -type module -reference $block_name $block_cell_name] } errmsg] } {
+  set block_cell_name MM_demo_0
+  if { [catch {set MM_demo_0 [create_bd_cell -type module -reference $block_name $block_cell_name] } errmsg] } {
      catch {common::send_gid_msg -ssname BD::TCL -id 2095 -severity "ERROR" "Unable to add referenced block <$block_name>. Please add the files for ${block_name}'s definition into the project."}
      return 1
-   } elseif { $MM_top_v_wrapper_0 eq "" } {
+   } elseif { $MM_demo_0 eq "" } {
      catch {common::send_gid_msg -ssname BD::TCL -id 2096 -severity "ERROR" "Unable to referenced block <$block_name>. Please add the files for ${block_name}'s definition into the project."}
      return 1
    }
     set_property -dict [ list \
    CONFIG.WIDTH {256} \
- ] $MM_top_v_wrapper_0
+ ] $MM_demo_0
 
   set_property -dict [ list \
    CONFIG.POLARITY {ACTIVE_HIGH} \
- ] [get_bd_pins /MM_top_v_wrapper_0/reset_i]
+ ] [get_bd_pins /MM_demo_0/reset_i]
 
 } else {
 
@@ -327,22 +327,12 @@ if { !$use_ip } {
   connect_bd_net -net reset_i_1 [get_bd_ports reset_i] [get_bd_pins proc_sys_reset_0/ext_reset_in]
   connect_bd_net -net start_i_1 [get_bd_ports start_i]
 
-  if { !$use_ip } {
-
-	connect_bd_intf_net -intf_net MM_top_v_wrapper_0_MBRAM [get_bd_intf_pins MM_top_v_wrapper_0/MBRAM] [get_bd_intf_pins blk_mem_gen_0/BRAM_PORTB]
-  	connect_bd_net -net done_o_net [get_bd_pins MM_top_v_wrapper_0/done_o]
-  	connect_bd_net -net clk_wiz_0_clk_out1 [get_bd_pins MM_top_v_wrapper_0/clock_i]
-  	connect_bd_net -net proc_sys_reset_0_peripheral_reset [get_bd_pins MM_top_v_wrapper_0/reset_i]
-  	connect_bd_net -net start_i_1 [get_bd_pins MM_top_v_wrapper_0/start_i]  
-
-  } else {
   
-  	connect_bd_intf_net -intf_net MM_demo_0_MBRAM [get_bd_intf_pins MM_demo_0/MBRAM] [get_bd_intf_pins blk_mem_gen_0/BRAM_PORTB]
-  	connect_bd_net -net done_o_net [get_bd_pins MM_demo_0/done_o]
-  	connect_bd_net -net clk_wiz_0_clk_out1 [get_bd_pins MM_demo_0/clock_i]
-  	connect_bd_net -net proc_sys_reset_0_peripheral_reset [get_bd_pins MM_demo_0/reset_i]
-  	connect_bd_net -net start_i_1 [get_bd_pins MM_demo_0/start_i]  	
-  }
+  connect_bd_intf_net -intf_net MM_demo_0_MBRAM [get_bd_intf_pins MM_demo_0/MBRAM] [get_bd_intf_pins blk_mem_gen_0/BRAM_PORTB]
+  connect_bd_net -net done_o_net [get_bd_pins MM_demo_0/done_o]
+  connect_bd_net -net clk_wiz_0_clk_out1 [get_bd_pins MM_demo_0/clock_i]
+  connect_bd_net -net proc_sys_reset_0_peripheral_reset [get_bd_pins MM_demo_0/reset_i]
+  connect_bd_net -net start_i_1 [get_bd_pins MM_demo_0/start_i]  	
 
   # Create address segments
 

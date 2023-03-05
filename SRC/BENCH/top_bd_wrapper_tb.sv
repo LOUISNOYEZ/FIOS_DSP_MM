@@ -7,9 +7,16 @@
 
 module top_bd_wrapper_tb #(parameter WIDTH = 256) ();
 
+    // WARNING !! simulation test vector files sim_WIDTH.txt must be generated and included into the project
+    // prior to running simulation.
+    // If simulation is performed manually, simulation fileset width must be set using the command
+    // set_property generic WIDTH=256 [get_filesets sim_1]
+    // and design WIDTH must be set in the sim_top_bd block design diagram.
+
+
     // The block design uses a clock wizard which uses
     // a 300 MHz clock to generate the higher frequency clock used by the design.
-    localparam PERIOD = 3.333,
+    localparam PERIOD = 10,
                HALF_PERIOD = PERIOD/2;
 
     // Bit width of the operands and number of 17 bits blocks
@@ -17,6 +24,14 @@ module top_bd_wrapper_tb #(parameter WIDTH = 256) ();
     // instead of WIDTH to compute s in order not to have to perform
     // the final subtraction in the Montgomery Algorithm (see paper).
     localparam s = (WIDTH+1)/17+1;
+
+    wire FIOS_start;
+     
+    wire FIOS_done;
+    
+    reg FIOS_running = 0;
+
+    int FIOS_cycle_count;
 
     // Global clock reset and start signals of the FIOS multiplier design.
     reg clock_i = 0;
@@ -48,6 +63,47 @@ module top_bd_wrapper_tb #(parameter WIDTH = 256) ();
         .BRAM_PORTA_i_rst(BRAM_PORTA_i_rst),
         .BRAM_PORTA_i_en(1),
         .done_o(done_o));
+
+
+    generate
+    
+        if (DUT.sim_top_bd_i.MM_demo_0.inst.CASCADE == 1) begin
+        
+            assign FIOS_start = DUT.sim_top_bd_i.MM_demo_0.inst.MM_top_inst.genblk2.FIOS_CASC_inst.start_i;
+            assign FIOS_done = DUT.sim_top_bd_i.MM_demo_0.inst.MM_top_inst.genblk2.FIOS_CASC_inst.done_o;
+
+        end else begin
+        
+            assign FIOS_start = DUT.sim_top_bd_i.MM_demo_0.inst.MM_top_inst.genblk2.FIOS_NOCASC_inst.start_i;
+            assign FIOS_done = DUT.sim_top_bd_i.MM_demo_0.inst.MM_top_inst.genblk2.FIOS_NOCASC_inst.done_o;
+
+        end
+        
+    endgenerate
+    
+    
+    always @ (posedge clock_i) begin
+            
+                if (FIOS_start)
+                    FIOS_running <= 1;
+                else if (FIOS_done)
+                    FIOS_running <= 0;
+                else
+                    FIOS_running <= FIOS_running;
+            
+    end
+    
+    
+    always @ (posedge clock_i) begin
+    
+        if (reset_i)
+            FIOS_cycle_count <= 0;
+        else if ((FIOS_running && !FIOS_done) || FIOS_start)
+            FIOS_cycle_count <= FIOS_cycle_count+1;
+        else
+            FIOS_cycle_count <= FIOS_cycle_count;
+    
+    end
 
     // testbench-side BRAM port runs at 300 MHz.
     assign BRAM_PORTA_i_clk = clock_i;
@@ -226,15 +282,9 @@ module top_bd_wrapper_tb #(parameter WIDTH = 256) ();
             success_string = "FAILURE";
             $display("FAILURE");
         end
-
+        
         $stop;
 
     end
 
-
 endmodule
-
-
-
-
-

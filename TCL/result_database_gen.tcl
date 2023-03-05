@@ -17,7 +17,7 @@ set root_folder "${script_folder}/.."
 
 sqlite3 db1 ./design_db
 db1 eval {CREATE TABLE IF NOT EXISTS model(name TEXT PRIMARY KEY, CASCADE BOOLEAN, CONFIGURATION TEXT, LOOP_DELAY INTEGER, WIDTH INTEGER, ABREG BOOLEAN, MREG BOOLEAN, CREG BOOLEAN, DSP_REG_LEVEL INTEGER, s INTEGER, PE_DELAY INTEGER, PE_NB INTEGER)}
-db1 eval {CREATE TABLE IF NOT EXISTS simulation(name TEXT, success TEXT, FOREIGN KEY(name) REFERENCES model(name))}
+db1 eval {CREATE TABLE IF NOT EXISTS simulation(name TEXT, success TEXT, CLOCK_CYCLES_1ST INTEGER, FOREIGN KEY(name) REFERENCES model(name))}
 db1 eval {CREATE TABLE IF NOT EXISTS implementation(name TEXT, FREQUENCY_MHZ REAL, CLOCK_CYCLES_1ST INTEGER, CLOCK_CYCLES_NEXT INTEGER, DSP INTEGER, LUT INTEGER, FF INTEGER, TIME_1ST_US REAL, TIME_NEXT_US REAL, THROUGHPUT REAL, FOREIGN KEY(name) REFERENCES simulation(name))}
 
 
@@ -28,7 +28,7 @@ open_project "${root_folder}/${project_name}/${project_name}.xpr"
 
 set LOOP_DELAY 0
 
-for {set WIDTH 128} {$WIDTH <= 256} {set WIDTH [expr 2*$WIDTH]} {
+for {set WIDTH 128} {$WIDTH <= 4096} {set WIDTH [expr 2*$WIDTH]} {
 for {set CONFIGURATION_int 0} {$CONFIGURATION_int <= 1} {incr CONFIGURATION_int} {
 
 set CONFIGURATION [expr {($CONFIGURATION_int == 1) ? "FOLD" : "EXPAND"}]
@@ -64,13 +64,13 @@ if {$DSP_REG_LEVEL == 1} {
 
 set s [expr {ceil(double($WIDTH+2)/17)}]
 
-set PE_NB [expr {($CONFIGURATION eq "FOLD") ? ceil((2*$s+1+$DSP_REG_LEVEL)/$PE_DELAY) : $s}]
+set PE_NB [expr {($CONFIGURATION eq "FOLD") ? floor((2*$s+1+$DSP_REG_LEVEL)/$PE_DELAY)+1 : $s}]
 
 set model_name "${WIDTH}CASC${CASCADE}L${LOOP_DELAY}AB${ABREG}M${MREG}C${CREG}${CONFIGURATION}"
 
 db1 eval {
-       INSERT OR IGNORE INTO model (name, CASCADE, CONFIGURATION, LOOP_DELAY, WIDTH, ABREG, MREG, CREG, DSP_REG_LEVEL, PE_DELAY) \
-       VALUES ($model_name, $CASCADE, $CONFIGURATION, $LOOP_DELAY, $WIDTH, $ABREG, $MREG, $CREG, $DSP_REG_LEVEL, $PE_DELAY) \
+       INSERT OR IGNORE INTO model (name, CASCADE, CONFIGURATION, LOOP_DELAY, WIDTH, ABREG, MREG, CREG, DSP_REG_LEVEL, s, PE_DELAY, PE_NB) \
+       VALUES ($model_name, $CASCADE, $CONFIGURATION, $LOOP_DELAY, $WIDTH, $ABREG, $MREG, $CREG, $DSP_REG_LEVEL, $s, $PE_DELAY, $PE_NB) \
 }
 
 if {![db1 exists {SELECT 1 FROM simulation WHERE name=$model_name}]} {
@@ -89,14 +89,15 @@ if {![db1 exists {SELECT 1 FROM simulation WHERE name=$model_name}]} {
 	run -all
 
 	set success_string [string trim [get_value success_string] "\""]
+	
+	set clock_cycles_1st [string trim [get_value FIOS_cycle_count] "\""]
 
 	close_sim
 	reset_simulation -simset sim_1 -mode behavioral
 
-
 	db1 eval {
-	       INSERT OR IGNORE INTO simulation (name, success) \
-	       VALUES ($model_name, $success_string) \
+	       INSERT OR IGNORE INTO simulation (name, success, CLOCK_CYCLES_1ST) \
+	       VALUES ($model_name, $success_string, $clock_cycles_1st) \
 	}
 
 }
@@ -165,7 +166,7 @@ if {![db1 exists {SELECT 1 FROM implementation WHERE name=$model_name}]} {
 			
 				set res_freq $clk_wiz_freq
 				set res_cc_1st [expr {($PE_DELAY+2)*$s-$PE_DELAY+1+$DSP_REG_LEVEL+((($CONFIGURATION == "FOLD") ? ($LOOP_DELAY+$CASCADE) : 0) + floor($PE_NB/double(168)))*ceil($s/double($PE_NB))}]
-				set res_cc_next [expr {($CONFIGURATION eq "FOLD") ? $res_cc_1st : (2*$s+1+$DSP_REG_LEVEL+floor($PE_NB/double(168))*ceil($s/double($PE_NB)))}]
+				set res_cc_next [expr {($CONFIGURATION eq "FOLD") ? $res_cc_1st : (2*$s+1+$DSP_REG_LEVEL+floor($PE_NB/double(168)))}]
 				
 				if {$CASCADE} {
 					set CASC_string "CASC"
