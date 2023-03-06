@@ -28,7 +28,12 @@ open_project "${root_folder}/${project_name}/${project_name}.xpr"
 
 set LOOP_DELAY 0
 
-for {set WIDTH 128} {$WIDTH <= 4096} {set WIDTH [expr 2*$WIDTH]} {
+for {set WIDTH 128} {$WIDTH <= 4096} {set WIDTH [expr $WIDTH+17]} {
+
+add_files -fileset sim_1 "${root_folder}/VERIFICATION/TEST_VECTORS/TXT/sim_${WIDTH}.txt"
+
+import_files -force
+
 for {set CONFIGURATION_int 0} {$CONFIGURATION_int <= 1} {incr CONFIGURATION_int} {
 
 set CONFIGURATION [expr {($CONFIGURATION_int == 1) ? "FOLD" : "EXPAND"}]
@@ -73,7 +78,7 @@ db1 eval {
        VALUES ($model_name, $CASCADE, $CONFIGURATION, $LOOP_DELAY, $WIDTH, $ABREG, $MREG, $CREG, $DSP_REG_LEVEL, $s, $PE_DELAY, $PE_NB) \
 }
 
-if {![db1 exists {SELECT 1 FROM simulation WHERE name=$model_name}]} {
+if {![db1 exists {SELECT 1 FROM simulation WHERE name=$model_name}] && [file exist "${root_folder}/FIOS_project/FIOS_project.srcs/sim_1/imports/TXT/sim_${WIDTH}.txt"]} {
 
 	set_property -dict [list CONFIG.WIDTH ${WIDTH} CONFIG.CASCADE ${CASCADE} CONFIG.CONFIGURATION ${CONFIGURATION} CONFIG.LOOP_DELAY ${LOOP_DELAY} CONFIG.ABREG ${ABREG} CONFIG.MREG ${MREG} CONFIG.CREG ${CREG}] [get_bd_cells MM_demo_0]
 
@@ -138,8 +143,6 @@ if {![db1 exists {SELECT 1 FROM implementation WHERE name=$model_name}]} {
 		
 		save_bd_design
 		
-		puts [get_property CONFIG.FREQ_HZ [get_bd_pins MM_demo_0/clock_i]]
-		
 		launch_runs impl_1 -jobs 4
 		wait_on_run impl_1
 		open_run impl_1
@@ -165,7 +168,7 @@ if {![db1 exists {SELECT 1 FROM implementation WHERE name=$model_name}]} {
 			if {$success} {
 			
 				set res_freq $clk_wiz_freq
-				set res_cc_1st [expr {($PE_DELAY+2)*$s-$PE_DELAY+1+$DSP_REG_LEVEL+((($CONFIGURATION == "FOLD") ? ($LOOP_DELAY+$CASCADE) : 0) + floor($PE_NB/double(168)))*ceil($s/double($PE_NB))}]
+				set res_cc_1st [expr {($PE_DELAY+2)*$s-$PE_DELAY+1+$DSP_REG_LEVEL+((($CONFIGURATION == "FOLD") ? ($LOOP_DELAY+$CASCADE) : 0) + floor($PE_NB/double(168)))*(ceil($s/double($PE_NB)-1))}]
 				set res_cc_next [expr {($CONFIGURATION eq "FOLD") ? $res_cc_1st : (2*$s+1+$DSP_REG_LEVEL+floor($PE_NB/double(168)))}]
 				
 				if {$CASCADE} {
@@ -213,8 +216,6 @@ if {![db1 exists {SELECT 1 FROM implementation WHERE name=$model_name}]} {
 
 			set clk_wiz_freq [expr {double([get_property CONFIG.FREQ_HZ [get_bd_pins clk_wiz_0/clk_out1]])/1000000}]
 			
-			puts $clk_wiz_freq
-
 		}
 		
 		set attempt_nb [expr {$attempt_nb+1}]
@@ -228,4 +229,9 @@ if {![db1 exists {SELECT 1 FROM implementation WHERE name=$model_name}]} {
 }
 }
 }
+
+if {[file exist "${root_folder}/FIOS_project/FIOS_project.srcs/sim_1/imports/TXT/sim_${WIDTH}.txt"]} {
+file delete "${root_folder}/FIOS_project/FIOS_project.srcs/sim_1/imports/TXT/sim_${WIDTH}.txt"
+}
+
 }

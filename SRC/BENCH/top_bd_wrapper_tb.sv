@@ -98,7 +98,7 @@ module top_bd_wrapper_tb #(parameter WIDTH = 256) ();
     
         if (reset_i)
             FIOS_cycle_count <= 0;
-        else if ((FIOS_running && !FIOS_done) || FIOS_start)
+        else if ((FIOS_running && !FIOS_done))
             FIOS_cycle_count <= FIOS_cycle_count+1;
         else
             FIOS_cycle_count <= FIOS_cycle_count;

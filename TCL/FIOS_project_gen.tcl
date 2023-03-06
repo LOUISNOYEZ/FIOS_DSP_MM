@@ -70,7 +70,6 @@ add_files -fileset sources_1 "${root_folder}/${project_name}/${project_name}.gen
 import_files -force
 
 add_files -fileset sim_1 "${root_folder}/SRC/BENCH"
-add_files -fileset sim_1 "${root_folder}/VERIFICATION/TEST_VECTORS/TXT"
 
 import_files -force
 
@@ -103,7 +102,3 @@ set_property top top_bd_wrapper_tb [get_filesets sim_1]
 
 update_compile_order -fileset sources_1
 update_compile_order -fileset sim_1
-
-#launch_runs impl_1 -to_step write_bitstream -jobs 4
-#wait_on_run impl_1
-#write_hw_platform -fixed -include_bit -force -file "${root_folder}/FIOS_impl/impl_top_bd_wrapper.xsa"

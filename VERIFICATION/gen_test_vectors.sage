@@ -1,5 +1,6 @@
 import argparse
 import random
+import os
 from FIOS import FIOS
 
 if __name__ == "__main__":
@@ -26,6 +27,8 @@ if __name__ == "__main__":
 		filename = "sim_" + str(WIDTH) + ".txt"
 		
 
+	filename = os.path.abspath(os.path.dirname(__file__)) + "/TEST_VECTORS/TXT/" + filename
+    
 	with open(filename, "w") as test_file:
 
 		for i in range(test_vectors_nb):
