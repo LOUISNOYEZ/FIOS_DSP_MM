@@ -144,12 +144,21 @@ if {![db1 exists {SELECT 1 FROM implementation WHERE name=$model_name}]} {
 		save_bd_design
 		
 		launch_runs impl_1 -jobs 4
-		wait_on_run impl_1
-		open_run impl_1
+		wait_on_run impl_1 -timeout 60
 		
-		set slack [get_property SLACK [get_timing_paths]]
+		if {[get_property PROGRESS [get_runs impl_1]] == "100%"} {
+
+			open_run impl_1
+			
+			set slack [get_property SLACK [get_timing_paths]]
+			
+			set success [expr {$slack >= 0.000 && $clk_wiz_freq <= 738.0}]
+
+		} else {
+			
+			set success 0
 		
-		set success [expr {$slack >= 0.000 && $clk_wiz_freq <= 738.0}]
+		}
 
 		if {!$success && $prev_success} {
 		
