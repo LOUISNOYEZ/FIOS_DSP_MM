@@ -28,7 +28,7 @@ open_project "${root_folder}/${project_name}/${project_name}.xpr"
 
 set LOOP_DELAY 0
 
-for {set WIDTH 128} {$WIDTH <= 4096} {set WIDTH [expr $WIDTH+17]} {
+for {set WIDTH 128} {$WIDTH <= 4096} {set WIDTH [expr 2*$WIDTH]} {
 
 add_files -fileset sim_1 "${root_folder}/VERIFICATION/TEST_VECTORS/TXT/sim_${WIDTH}.txt"
 
