@@ -34,4 +34,4 @@ Implementation results can be automatically generated once the project `FIOS_pro
 This script will automatically validate the design and generate implementation results for a wide range of different parameters. It will store the implementation results, parameters and simulation results in a database. Although its use is not covered here, a [grafana](https://grafana.com/oss/grafana/) server has been used to vizualize the implementation results data in real-time.
 Note that this script uses [sqlite3](https://www.sqlite.org/index.html) and the [tclsqlite](https://cyqlite.sourceforge.io/cgi-bin/sqlite/dir?ci=tip) library installed under `/usr/lib`.
 
-All results are available in the `RESULTS` folder as an sqlite3 database, a csv dump file, and a [markdown table](RESULTS/results.md) for display in github
+All results are available in the `RESULTS` folder as an sqlite3 database, a csv dump file, and a [markdown table](RESULTS/README.md) for display in github.

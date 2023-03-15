@@ -1,4 +1,4 @@
-| Name | WIDTH | CONFIGURATION | CASCADE | CREG | ABREG | MREG | s | DSP <br> REG <br> LEVEL | PE <br> DELAY | PE <br> NB | FREQUENCY <br> (MHz) | CLOCK <br> CYCLES <br> 1ST | CLOCK <br> CYCLES <br> NEXT | DSP | LUT | FF | TIME <br> FIRST <br> ($\mu\text{s}$) | TIME <br> NEXT <br> ($\mu\text{s}$) | THROUGHPUT <br> ($10^6.MM.s^{-1}$) |
+| Name | WIDTH | CONFIGURATION | CASCADE | CREG | ABREG | MREG | s | DSP <br> REG <br> LEVEL | PE <br> DELAY | PE <br> NB | FREQUENCY <br> (MHz) | CLOCK <br> CYCLES <br> 1ST | CLOCK <br> CYCLES <br> NEXT | DSP | LUT | FF | TIME <br> FIRST <br> ($\mu\text{s}$) | TIME <br> NEXT <br> ($\mu\text{s}$) | THROUGHPUT <br> ($10^6\tMM.s^{-1}$)|
 |:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
 |128CASC0L0AB0M0C0EXPAND|128|EXPAND|:x:|:x:|:x:|:x:|8|1|5|8|433.33333|53|18|8|597|1181|0.12231|0.04154|24.07407|
 |128CASC0L0AB0M1C0EXPAND|128|EXPAND|:x:|:x:|:x:|:heavy_check_mark:|8|2|6|8|562.50000|61|19|8|599|1470|0.10844|0.03378|29.60526|
