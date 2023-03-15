@@ -2,6 +2,7 @@ lappend auto_path "/usr/lib/sqlite3.40.0"
 
 package require sqlite3
 
+
 namespace eval _tcl {
 proc get_script_folder {} {
    set script_path [file normalize [info script]]
@@ -15,7 +16,7 @@ set script_folder [_tcl::get_script_folder]
 variable root_folder
 set root_folder "${script_folder}/.."
 
-sqlite3 db1 ./design_db
+sqlite3 db1 "${root_folder}/RESULTS/results.db"
 db1 eval {CREATE TABLE IF NOT EXISTS model(name TEXT PRIMARY KEY, CASCADE BOOLEAN, CONFIGURATION TEXT, LOOP_DELAY INTEGER, WIDTH INTEGER, ABREG BOOLEAN, MREG BOOLEAN, CREG BOOLEAN, DSP_REG_LEVEL INTEGER, s INTEGER, PE_DELAY INTEGER, PE_NB INTEGER)}
 db1 eval {CREATE TABLE IF NOT EXISTS simulation(name TEXT, success TEXT, CLOCK_CYCLES_1ST INTEGER, FOREIGN KEY(name) REFERENCES model(name))}
 db1 eval {CREATE TABLE IF NOT EXISTS implementation(name TEXT, FREQUENCY_MHZ REAL, CLOCK_CYCLES_1ST INTEGER, CLOCK_CYCLES_NEXT INTEGER, DSP INTEGER, LUT INTEGER, FF INTEGER, TIME_1ST_US REAL, TIME_NEXT_US REAL, THROUGHPUT REAL, FOREIGN KEY(name) REFERENCES simulation(name))}
@@ -28,7 +29,7 @@ open_project "${root_folder}/${project_name}/${project_name}.xpr"
 
 set LOOP_DELAY 0
 
-for {set WIDTH 128} {$WIDTH <= 4096} {set WIDTH [expr 2*$WIDTH]} {
+for {set WIDTH 128} {$WIDTH <= 4096} {set WIDTH [expr $WIDTH+17]} {
 
 add_files -fileset sim_1 "${root_folder}/VERIFICATION/TEST_VECTORS/TXT/sim_${WIDTH}.txt"
 

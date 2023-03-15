@@ -84,6 +84,8 @@ set_property synth_checkpoint_mode None [get_files  "${root_folder}/${project_na
 # Sets implementation Strategy to Performance_ExploreWithRemap.
 set_property strategy Performance_ExploreWithRemap [get_runs impl_1]
 
+set_property STEPS.SYNTH_DESIGN.ARGS.INCREMENTAL_MODE off [get_runs synth_1]
+
 export_ip_user_files -of_objects [get_files "${root_folder}/${project_name}/${project_name}.srcs/sources_1/bd/impl_top_bd/impl_top_bd.bd"] -no_script -sync -force -quiet
 
 
