@@ -1,7 +1,24 @@
-lappend auto_path "/usr/lib/sqlite3.40.0"
+variable res_mode
+set res_mode "db"
 
-package require sqlite3
+if { $argc == 1 } {
 
+	switch [ lindex $argv 0 ] {
+		"db" {
+			set res_mode "db"
+		}
+		"csv" {
+			set res_mode "csv"
+		}
+	}
+
+}
+
+if { $res_mode eq "db" } {
+	lappend auto_path "/usr/lib/sqlite3.40.0"
+
+	package require sqlite3
+}
 
 namespace eval _tcl {
 proc get_script_folder {} {
@@ -16,11 +33,26 @@ set script_folder [_tcl::get_script_folder]
 variable root_folder
 set root_folder "${script_folder}/.."
 
-sqlite3 db1 "${root_folder}/RESULTS/results.db"
-db1 eval {CREATE TABLE IF NOT EXISTS model(name TEXT PRIMARY KEY, CASCADE BOOLEAN, CONFIGURATION TEXT, LOOP_DELAY INTEGER, WIDTH INTEGER, ABREG BOOLEAN, MREG BOOLEAN, CREG BOOLEAN, DSP_REG_LEVEL INTEGER, s INTEGER, PE_DELAY INTEGER, PE_NB INTEGER)}
-db1 eval {CREATE TABLE IF NOT EXISTS simulation(name TEXT, success TEXT, CLOCK_CYCLES_1ST INTEGER, FOREIGN KEY(name) REFERENCES model(name))}
-db1 eval {CREATE TABLE IF NOT EXISTS implementation(name TEXT, FREQUENCY_MHZ REAL, CLOCK_CYCLES_1ST INTEGER, CLOCK_CYCLES_NEXT INTEGER, DSP INTEGER, LUT INTEGER, FF INTEGER, TIME_1ST_US REAL, TIME_NEXT_US REAL, THROUGHPUT REAL, FOREIGN KEY(name) REFERENCES simulation(name))}
-
+if { $res_mode eq "db" } {
+	sqlite3 db1 "${root_folder}/RESULTS/results.db"
+	db1 eval {CREATE TABLE IF NOT EXISTS model(name TEXT PRIMARY KEY, CASCADE BOOLEAN, CONFIGURATION TEXT, LOOP_DELAY INTEGER, WIDTH INTEGER, ABREG BOOLEAN, MREG BOOLEAN, CREG BOOLEAN, DSP_REG_LEVEL INTEGER, s INTEGER, PE_DELAY INTEGER, PE_NB INTEGER)}
+	db1 eval {CREATE TABLE IF NOT EXISTS simulation(name TEXT, success TEXT, CLOCK_CYCLES_1ST INTEGER, FOREIGN KEY(name) REFERENCES model(name))}
+	db1 eval {CREATE TABLE IF NOT EXISTS implementation(name TEXT, FREQUENCY_MHZ REAL, CLOCK_CYCLES_1ST INTEGER, CLOCK_CYCLES_NEXT INTEGER, DSP INTEGER, LUT INTEGER, FF INTEGER, TIME_1ST_US REAL, TIME_NEXT_US REAL, THROUGHPUT REAL, FOREIGN KEY(name) REFERENCES simulation(name))}
+} elseif { $res_mode eq "csv" } {
+	if { !([file exist "${root_folder}/RESULTS/results.csv"]) } {
+		set results_csv_file [ open "${root_folder}/RESULTS/results.csv" "w+"]
+		puts $results_csv_file "\
+PRAGMA foreign_keys=OFF;\n\
+BEGIN TRANSACTION;\n\
+CREATE TABLE model(name TEXT PRIMARY KEY, CASCADE BOOLEAN, CONFIGURATION TEXT, LOOP_DELAY INTEGER, WIDTH INTEGER, ABREG BOOLEAN, MREG BOOLEAN, CREG BOOLEAN, DSP_REG_LEVEL INTEGER, s INTEGER, PE_DELAY INTEGER, PE_NB INTEGER);\n\
+CREATE TABLE simulation(name TEXT, success TEXT, CLOCK_CYCLES_1ST INTEGER, FOREIGN KEY(name) REFERENCES model(name));\n\
+CREATE TABLE implementation(name TEXT, FREQUENCY_MHZ REAL, CLOCK_CYCLES_1ST INTEGER, CLOCK_CYCLES_NEXT INTEGER, DSP INTEGER, LUT INTEGER, FF INTEGER, TIME_1ST_US REAL, TIME_NEXT_US REAL, THROUGHPUT REAL, FOREIGN KEY(name) REFERENCES simulation(name));\n\
+COMMIT;"
+		flush $results_csv_file
+	} else {
+		set results_csv_file [ open "${root_folder}/RESULTS/results.csv" "r+" ]
+	}
+}
 
 variable project_name
 set project_name "FIOS_project"
@@ -74,12 +106,27 @@ set PE_NB [expr {($CONFIGURATION eq "FOLD") ? floor((2*$s+1+$DSP_REG_LEVEL)/$PE_
 
 set model_name "${WIDTH}CASC${CASCADE}L${LOOP_DELAY}AB${ABREG}M${MREG}C${CREG}${CONFIGURATION}"
 
-db1 eval {
-       INSERT OR IGNORE INTO model (name, CASCADE, CONFIGURATION, LOOP_DELAY, WIDTH, ABREG, MREG, CREG, DSP_REG_LEVEL, s, PE_DELAY, PE_NB) \
-       VALUES ($model_name, $CASCADE, $CONFIGURATION, $LOOP_DELAY, $WIDTH, $ABREG, $MREG, $CREG, $DSP_REG_LEVEL, $s, $PE_DELAY, $PE_NB) \
+if { $res_mode eq "db" } {
+	db1 eval {
+	       INSERT OR IGNORE INTO model (name, CASCADE, CONFIGURATION, LOOP_DELAY, WIDTH, ABREG, MREG, CREG, DSP_REG_LEVEL, s, PE_DELAY, PE_NB) \
+	       VALUES ($model_name, $CASCADE, $CONFIGURATION, $LOOP_DELAY, $WIDTH, $ABREG, $MREG, $CREG, $DSP_REG_LEVEL, $s, $PE_DELAY, $PE_NB) \
+	}
+} else {
+	set model_insert_string "INSERT INTO model VALUES('$model_name',$CASCADE,'$CONFIGURATION',$LOOP_DELAY,$WIDTH,$ABREG,$MREG,$CREG,$DSP_REG_LEVEL,"
+	append model_insert_string [expr int($s)] ",$PE_DELAY," [expr int($PE_NB)] ");"
+	
+	seek $results_csv_file 0 start
+	if { [ llength [ lsearch -all [ split [ read $results_csv_file ] "\n()'" ] $model_name ] ] == 0 } {
+		seek $results_csv_file -8 end
+		puts $results_csv_file $model_insert_string
+		puts $results_csv_file "COMMIT;"
+		flush $results_csv_file
+	}
+	seek $results_csv_file 0 start
 }
 
-if {![db1 exists {SELECT 1 FROM simulation WHERE name=$model_name}] && [file exist "${root_folder}/FIOS_project/FIOS_project.srcs/sim_1/imports/TXT/sim_${WIDTH}.txt"]} {
+if { ($res_mode eq "db") ? [expr ![db1 exists {SELECT 1 FROM simulation WHERE name=$model_name}]] : [expr [ llength [ lsearch -all [ split [ read $results_csv_file ] "\n()'" ] $model_name ] ] < 2] } {
+if { [file exist "${root_folder}/FIOS_project/FIOS_project.srcs/sim_1/imports/TXT/sim_${WIDTH}.txt"] } {
 
 	set_property -dict [list CONFIG.WIDTH ${WIDTH} CONFIG.CASCADE ${CASCADE} CONFIG.CONFIGURATION ${CONFIGURATION} CONFIG.LOOP_DELAY ${LOOP_DELAY} CONFIG.ABREG ${ABREG} CONFIG.MREG ${MREG} CONFIG.CREG ${CREG}] [get_bd_cells MM_demo_0]
 
@@ -101,15 +148,33 @@ if {![db1 exists {SELECT 1 FROM simulation WHERE name=$model_name}] && [file exi
 	close_sim
 	reset_simulation -simset sim_1 -mode behavioral
 
-	db1 eval {
-	       INSERT OR IGNORE INTO simulation (name, success, CLOCK_CYCLES_1ST) \
-	       VALUES ($model_name, $success_string, $clock_cycles_1st) \
+	if { $res_mode eq "db" } {
+		db1 eval {
+		       INSERT OR IGNORE INTO simulation (name, success, CLOCK_CYCLES_1ST) \
+		       VALUES ($model_name, $success_string, $clock_cycles_1st) \
+		}
+	} else {
+		set sim_insert_string "INSERT INTO simulation VALUES('$model_name','$success_string',$clock_cycles_1st);"
+		
+		seek $results_csv_file -8 end
+		puts $results_csv_file $sim_insert_string
+		puts $results_csv_file "COMMIT;"
+		flush $results_csv_file
+		seek $results_csv_file 0 start
 	}
 
 }
+}
 
 
-if {![db1 exists {SELECT 1 FROM implementation WHERE name=$model_name}]} {
+if { ($res_mode eq "csv") } {
+
+	seek $results_csv_file 0 start
+
+}
+
+if { ($res_mode eq "db") ? [expr ![db1 exists {SELECT 1 FROM implementation WHERE name=$model_name}] ] : [expr [ llength [ lsearch -all [ split [ read $results_csv_file ] "\n()'," ] $model_name ] ] < 3 ]} {
+	seek $results_csv_file 0 start
 
 	open_bd_design "${root_folder}/${project_name}/${project_name}.srcs/sources_1/bd/impl_top_bd/impl_top_bd.bd"
 
@@ -163,9 +228,19 @@ if {![db1 exists {SELECT 1 FROM implementation WHERE name=$model_name}]} {
 
 		if {!$success && $prev_success} {
 		
-			db1 eval {
-			       INSERT OR IGNORE INTO implementation (name, FREQUENCY_MHZ, CLOCK_CYCLES_1ST, CLOCK_CYCLES_NEXT, DSP, LUT, FF, TIME_1ST_US, TIME_NEXT_US, THROUGHPUT) \
-			       VALUES ($model_name, $res_freq, $res_cc_1st, $res_cc_next, $res_dsp, $res_lut, $res_ff, $res_time_1st, $res_time_next, $res_throughput) \
+			if { $res_mode eq "db" } {
+				db1 eval {
+				       INSERT OR IGNORE INTO implementation (name, FREQUENCY_MHZ, CLOCK_CYCLES_1ST, CLOCK_CYCLES_NEXT, DSP, LUT, FF, TIME_1ST_US, TIME_NEXT_US, THROUGHPUT) \
+				       VALUES ($model_name, $res_freq, $res_cc_1st, $res_cc_next, $res_dsp, $res_lut, $res_ff, $res_time_1st, $res_time_next, $res_throughput) \
+				}
+			} else {
+				set impl_insert_string "INSERT INTO implementation VALUES('$model_name',$res_freq,$res_cc_1st,$res_cc_next,$res_dsp,$res_lut,$res_ff,$res_time_1st,$res_time_next,$res_throughput);"
+	
+				seek $results_csv_file -8 end
+				puts $results_csv_file $impl_insert_string
+				puts $results_csv_file "COMMIT;"
+				flush $results_csv_file
+				seek $results_csv_file 0 start
 			}
 		
 			reset_run synth_1
@@ -245,3 +320,5 @@ file delete "${root_folder}/FIOS_project/FIOS_project.srcs/sim_1/imports/TXT/sim
 }
 
 }
+
+close $results_csv_file
