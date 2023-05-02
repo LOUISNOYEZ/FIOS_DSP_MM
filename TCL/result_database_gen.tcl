@@ -209,7 +209,7 @@ if { ($res_mode eq "db") ? [expr ![db1 exists {SELECT 1 FROM implementation WHER
 		
 		save_bd_design
 		
-		launch_runs impl_1 -jobs 4
+		launch_runs impl_1 -jobs 12
 		wait_on_run impl_1 -timeout 60
 		
 		if {[get_property PROGRESS [get_runs impl_1]] == "100%"} {
