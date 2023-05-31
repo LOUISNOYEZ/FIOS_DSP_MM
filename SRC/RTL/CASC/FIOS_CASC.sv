@@ -293,7 +293,7 @@ module FIOS_CASC #(parameter  string CONFIGURATION = "EXPAND",
         
             if (i == PE_NB-1) begin
         
-                delay_line #(.WIDTH(1), .DELAY((i == PE_NB-1) ? PE_DELAY+1 : PE_DELAY)) start_dly_inst (
+                delay_line #(.WIDTH(1), .DELAY((i == PE_NB-1) ? PE_DELAY+1+LOOP_DELAY : PE_DELAY)) start_dly_inst (
                     .clock_i(clock_i), .reset_i(1'b0), .en_i(1'b1),
                     
                     .data_i(start[PE_NB-1]),

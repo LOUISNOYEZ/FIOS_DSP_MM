@@ -3,6 +3,7 @@
 // This module contains the FIOS multiplier as well as its control logic.
 
 module FIOS_NOCASC #(parameter  string CONFIGURATION = "EXPAND",
+                         int    LOOP_DELAY = 1,
                          int    ABREG = 1,
                          int    MREG = 1,
                          int    CREG = 1,
@@ -293,7 +294,7 @@ module FIOS_NOCASC #(parameter  string CONFIGURATION = "EXPAND",
         
             if (i == PE_NB-1) begin
         
-                delay_line #(.WIDTH(1), .DELAY(PE_DELAY)) start_dly_inst (
+                delay_line #(.WIDTH(1), .DELAY(PE_DELAY+LOOP_DELAY)) start_dly_inst (
                     .clock_i(clock_i), .reset_i(1'b0), .en_i(1'b1),
                     
                     .data_i(start[PE_NB-1]),
@@ -305,7 +306,7 @@ module FIOS_NOCASC #(parameter  string CONFIGURATION = "EXPAND",
 
             end else begin
             
-                delay_line #(.WIDTH(24), .DELAY((i == PE_NB-1) ? PE_DELAY : PE_DELAY)) control_dly_inst (
+                delay_line #(.WIDTH(24), .DELAY((i == PE_NB-1) ? PE_DELAY+LOOP_DELAY : PE_DELAY)) control_dly_inst (
                     .clock_i(clock_i), .reset_i(1'b0), .en_i(1'b1),
                     
                     .data_i({a_reg_en[i],
