@@ -3,6 +3,7 @@
 // This module is the Montgomery FIOS multiplier.
 
 module FIOS_MM_NOCASC #(parameter  string CONFIGURATION = "EXPAND",
+                            int    LOOP_DELAY = 0,
                             int    ABREG = 1,
                             int    MREG = 1,
                             int    CREG = 1,
@@ -143,7 +144,7 @@ module FIOS_MM_NOCASC #(parameter  string CONFIGURATION = "EXPAND",
             // register is used on this path since the first PE in the chain cannot use the
             // PCIN cascade signal to immediately use the previous result.
 
-            delay_line #(.WIDTH(17), .DELAY(0)) RES_dly_inst (
+            delay_line #(.WIDTH(17), .DELAY(LOOP_DELAY)) RES_dly_inst (
                 .clock_i(clock_i), .reset_i(1'b0), .en_i(1'b1),
                 
                 .data_i(RES[i]),

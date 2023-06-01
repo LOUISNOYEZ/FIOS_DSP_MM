@@ -1,5 +1,3 @@
-The database `results.db` and csv files `model.csv`, `simulation.csv` and `implementation.csv` contain data for all designs of bit width from 128 bits up to 1709 bits by 17 bits increments as well as designs for width 128, 256, 512, 1024, 2048 and 4096 bits displayed in the table below.
-
 | Name | WIDTH | CONFIGURATION | CASCADE | CREG | ABREG | MREG | s | DSP <br> REG <br> LEVEL | PE <br> DELAY | PE <br> NB | FREQUENCY <br> (MHz) | CLOCK <br> CYCLES <br> 1ST | CLOCK <br> CYCLES <br> NEXT | DSP | LUT | FF | TIME <br> FIRST <br> ($\mu\text{s}$) | TIME <br> NEXT <br> ($\mu\text{s}$) | THROUGHPUT <br> ($10^6\text{MM}.s^{-1}$)|
 |:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
 |128CA0L0AB0M0C0E|128|EXPAND|:x:|:x:|:x:|:x:|8|1|5|8|433.33333|53|18|8|597|1181|0.12231|0.04154|24.07407|

@@ -68,7 +68,7 @@ module FIOS_CASC #(parameter  string CONFIGURATION = "EXPAND",
         
         
     reg RES_push_reg;
-    reg end_reg;
+    reg done_reg;
         
     reg start [0:PE_NB];
     
@@ -76,20 +76,7 @@ module FIOS_CASC #(parameter  string CONFIGURATION = "EXPAND",
     wire p_fetch;
         
     reg C_input_delay_en [0:PE_NB-1];
-    
-    reg done_reg;
-    
-    always @ (posedge clock_i) begin
-    
-        if (reset_i)
-            end_reg <= 0;
-        else if (done_o)
-            end_reg <= 1;
-        else
-            end_reg <= end_reg;
-    
-    end
-    
+        
     generate
         if (CONFIGURATION == "FOLD") begin
         
@@ -100,7 +87,7 @@ module FIOS_CASC #(parameter  string CONFIGURATION = "EXPAND",
         
             always @ (posedge clock_i) begin
 
-                if (reset_i || end_reg)
+                if (reset_i || done_o)
                     FIOS_input_sel_reg <= 0;
                 else if (done[0] && ~FIOS_input_sel_reg)
                     FIOS_input_sel_reg <= 1;
@@ -306,7 +293,7 @@ module FIOS_CASC #(parameter  string CONFIGURATION = "EXPAND",
         
             if (i == PE_NB-1) begin
         
-                delay_line #(.WIDTH(1), .DELAY((i == PE_NB-1) ? PE_DELAY+1 : PE_DELAY)) start_dly_inst (
+                delay_line #(.WIDTH(1), .DELAY((i == PE_NB-1) ? PE_DELAY+1+LOOP_DELAY : PE_DELAY)) start_dly_inst (
                     .clock_i(clock_i), .reset_i(1'b0), .en_i(1'b1),
                     
                     .data_i(start[PE_NB-1]),
