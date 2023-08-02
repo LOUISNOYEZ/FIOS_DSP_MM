@@ -253,8 +253,8 @@ if { ($res_mode eq "db") ? [expr ![db1 exists {SELECT 1 FROM implementation WHER
 			if {$success} {
 			
 				set res_freq $clk_wiz_freq
-				set res_cc_1st [expr {($PE_DELAY+2)*$s-$PE_DELAY+1+$DSP_REG_LEVEL+((($CONFIGURATION == "FOLD") ? ($LOOP_DELAY+$CASCADE) : 0) + floor($PE_NB/double(168)))*(ceil($s/double($PE_NB)-1))}]
-				set res_cc_next [expr {($CONFIGURATION eq "FOLD") ? $res_cc_1st : (2*$s+1+$DSP_REG_LEVEL+floor($PE_NB/double(168)))}]
+				set res_cc_1st [expr {($PE_DELAY+2)*$s-$PE_DELAY+1+$DSP_REG_LEVEL+((($CONFIGURATION == "FOLD") ? ($LOOP_DELAY+$CASCADE) : $LOOP_DELAY) + floor($PE_NB/double(168)))*(ceil($s/double($PE_NB)-1))}]
+				set res_cc_next [expr {($CONFIGURATION eq "FOLD") ? $res_cc_1st : (2*$s+2+$DSP_REG_LEVEL))}]
 				
 				if {$CASCADE} {
 					set CASC_string "CASC"
