@@ -194,7 +194,7 @@ module MM_top #(parameter  string CONFIGURATION = "FOLD",
         end else begin
         
         
-            FIOS_NOCASC #(.CONFIGURATION(CONFIGURATION), .ABREG(ABREG), .MREG(MREG), .CREG(CREG), .s(s)) FIOS_NOCASC_inst (
+            FIOS_NOCASC #(.CONFIGURATION(CONFIGURATION), .ABREG(ABREG), .MREG(MREG), .CREG(CREG), .s(s), .LOOP_DELAY(LOOP_DELAY)) FIOS_NOCASC_inst (
                 .clock_i(clock_i), .reset_i(reset_i),
                 
                 .start_i(FIOS_start),
