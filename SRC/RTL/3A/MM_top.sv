@@ -158,34 +158,71 @@ module MM_top #(parameter  string CONFIGURATION = "FOLD",
     
     end
     
+    generate
     
-    FIOS_NOCASC #(.CONFIGURATION(CONFIGURATION), .ABREG(ABREG), .MREG(MREG), .CREG(CREG), .s(s), .LOOP_DELAY(LOOP_DELAY)) FIOS_NOCASC_inst (
-                .clock_i(clock_i), .reset_i(reset_i),
+        if (CASCADE == 0) begin
+    
+            FIOS_NOCASC #(.CONFIGURATION(CONFIGURATION), .ABREG(ABREG), .MREG(MREG), .CREG(CREG), .s(s), .LOOP_DELAY(LOOP_DELAY)) FIOS_NOCASC_inst (
+                        .clock_i(clock_i), .reset_i(reset_i),
+                        
+                        .start_i(FIOS_start),
                 
-                .start_i(FIOS_start),
-        
-                
-                .p_prime_0_i(p_prime_0_reg),
-                
-                .a_i(a_reg[PE_NB*17-1:0]),
-                
-                .b_i(b_reg[16:0]),
-                .p_i(p_reg[16:0]),
-                
-                
-                .a_shift_o(a_shift),
-                
-                .b_fetch_o(b_fetch),
-                .p_fetch_o(p_fetch),
-                
-                .RES_push_o(RES_push),
-                
-                .done_o(FIOS_done),
-                
-                
-                .RES_o(RES)
+                        
+                        .p_prime_0_i(p_prime_0_reg),
+                        
+                        .a_i(a_reg[PE_NB*17-1:0]),
+                        
+                        .b_i(b_reg[16:0]),
+                        .p_i(p_reg[16:0]),
+                        
+                        
+                        .a_shift_o(a_shift),
+                        
+                        .b_fetch_o(b_fetch),
+                        .p_fetch_o(p_fetch),
+                        
+                        .RES_push_o(RES_push),
+                        
+                        .done_o(FIOS_done),
+                        
+                        
+                        .RES_o(RES)
+                    
+            );
             
-    );
+        end else if (CASCADE == 1) begin
+        
+            FIOS_CASC #(.CONFIGURATION(CONFIGURATION), .ABREG(ABREG), .MREG(MREG), .CREG(CREG), .s(s), .LOOP_DELAY(LOOP_DELAY)) FIOS_CASC_inst (
+                        .clock_i(clock_i), .reset_i(reset_i),
+                        
+                        .start_i(FIOS_start),
+                
+                        
+                        .p_prime_0_i(p_prime_0_reg),
+                        
+                        .a_i(a_reg[PE_NB*17-1:0]),
+                        
+                        .b_i(b_reg[16:0]),
+                        .p_i(p_reg[16:0]),
+                        
+                        
+                        .a_shift_o(a_shift),
+                        
+                        .b_fetch_o(b_fetch),
+                        .p_fetch_o(p_fetch),
+                        
+                        .RES_push_o(RES_push),
+                        
+                        .done_o(FIOS_done),
+                        
+                        
+                        .RES_o(RES)
+                    
+            );
+        
+        end
+        
+    endgenerate
 
 
     MM_top_control #(.s(s)) MM_top_control_inst (
