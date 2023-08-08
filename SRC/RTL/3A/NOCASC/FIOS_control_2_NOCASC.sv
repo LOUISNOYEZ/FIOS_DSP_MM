@@ -171,7 +171,7 @@ module FIOS_control_2_NOCASC #(parameter s = 16,
                                 mux_B_sel_o = 0;
                                 mux_C_sel_o = 0;
                                 
-                                CREG_en_o = 1;
+                                CREG_en_o = 0;
         
                                 OPMODE_o = 7'b0110101;
                                
@@ -271,9 +271,9 @@ module FIOS_control_2_NOCASC #(parameter s = 16,
         
                                 mux_A_sel_o = 1;
                                 mux_B_sel_o = 2;
-                                mux_C_sel_o = 0;
+                                mux_C_sel_o = (CREG ? 1 : 0);
                                 
-                                CREG_en_o = 0;
+                                CREG_en_o = 1;
         
                                 OPMODE_o = 7'b0110101;
                                
@@ -373,7 +373,7 @@ module FIOS_control_2_NOCASC #(parameter s = 16,
         
                                 mux_A_sel_o = 0;
                                 mux_B_sel_o = 0;
-                                mux_C_sel_o = 0;
+                                mux_C_sel_o = 2;
                                 
                                 CREG_en_o = 1;
         
@@ -381,7 +381,7 @@ module FIOS_control_2_NOCASC #(parameter s = 16,
                                
                                 RES_delay_en_o = 0;
                                 
-                                C_input_delay_en_o = (CREG) ? 1 : 0;
+                                C_input_delay_en_o = (CREG) ? 2 : 0;
                                
                                 a_shift_o = 0;
                                
@@ -441,7 +441,7 @@ module FIOS_control_2_NOCASC #(parameter s = 16,
         
                                 mux_A_sel_o = 2;
                                 mux_B_sel_o = 2;
-                                mux_C_sel_o = (CREG) ? 1 : 0;
+                                mux_C_sel_o = (CREG) ? 2 : 0;
                                 
                                 CREG_en_o = (CREG) ? 1 : 0;
         
@@ -551,7 +551,7 @@ module FIOS_control_2_NOCASC #(parameter s = 16,
                                
                                 RES_delay_en_o = 0;
                                 
-                                C_input_delay_en_o = (CREG) ? 1 : 0;
+                                C_input_delay_en_o = 2;
                                
                                 a_shift_o = 0;
                                

@@ -197,15 +197,41 @@ module PE_NOCASC #(parameter  int   ABREG = 1,
     // Only DSP_REG_LEVEL 2 and 3 require additional logic.
     //The CREG register inside the DSP block is sufficient for DSP_REG_LEVEL 1. 
 
-    delay_line #(.WIDTH(34), .DELAY(FEEDBACK_DELAY-CREG)) RES_delay_inst (
-        .clock_i(clock_i), .reset_i(1'b0), .en_i((DSP_REG_LEVEL == 1) ? 1'b1 : RES_delay_en_reg),
-        
-        .data_i(RES),
-        
-        .data_o(RES_delay)
-        
-    );
+    generate
     
+        if ((DSP_REG_LEVEL == 2) && (CREG == 1)) begin
+        
+            reg m_reg_en_reg_delay;
+            
+            always_ff @ (posedge clock_i)
+                m_reg_en_reg_delay <= m_reg_en_reg;
+                
+            reg [34:0] RES_delay_prime;
+                
+            always_ff @ (posedge clock_i) begin
+                if (RES_delay_en_reg)
+                    RES_delay_prime <= RES;
+                else
+                    RES_delay_prime <= RES_delay_prime;
+            end
+                
+            assign RES_delay = (m_reg_en_reg_delay) ? RES : RES_delay_prime;
+        
+        end else begin
+
+            delay_line #(.WIDTH(34), .DELAY(FEEDBACK_DELAY-CREG)) RES_delay_inst (
+                .clock_i(clock_i), .reset_i(1'b0), .en_i((DSP_REG_LEVEL == 1) ? 1'b1 : RES_delay_en_reg),
+                
+                .data_i(RES),
+                
+                .data_o(RES_delay)
+                
+            );
+            
+        end
+        
+    endgenerate
+        
     // Outputs and the p_prime_0 value are propagated to the next PE in the chain.
 
     assign p_prime_0_o = p_prime_0_reg;

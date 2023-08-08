@@ -184,7 +184,7 @@ module FIOS_control_1_NOCASC #(parameter s = 16,
         
                                 mux_A_sel_o = 1;
                                 mux_B_sel_o = 2;
-                                mux_C_sel_o = (CREG) ? 2 : 1;
+                                mux_C_sel_o = (CREG) ? 0 : 1;
         
                                 CREG_en_o = 1;
         
