@@ -13,7 +13,7 @@ module FIOS_NOCASC #(parameter  string CONFIGURATION = "EXPAND",
                                           (DSP_REG_LEVEL == 2) ? 7 + (CREG ? 1 : 0) :
                                           (DSP_REG_LEVEL == 3) ? 9 + (CREG ? 1 : 0) :
                                           6 + (CREG ? 1 : 0),
-                         int   PE_NB = (CONFIGURATION == "FOLD") ? (2*s+2+DSP_REG_LEVEL-1)/PE_DELAY+1 :
+                         int   PE_NB = (CONFIGURATION == "FOLD") ? ((3*s+2*DSP_REG_LEVEL+((DSP_REG_LEVEL == 3) ? 1 :0))/PE_DELAY+1) :
                                        s) (                            
     input clock_i, reset_i,
     
@@ -79,12 +79,85 @@ module FIOS_NOCASC #(parameter  string CONFIGURATION = "EXPAND",
     reg C_input_delay_en [0:PE_NB-1];
         
 
-    assign start[0] = start_i;
-    
-    assign RES_push_o = RES_push_reg;
-    
-    assign done_o = done_reg;
+    generate
+        if (CONFIGURATION == "FOLD") begin
         
+            // In the folded configuration, control signals are initially provided
+            // by the FIOS_control FSM. Control signals are subsequently delayed and
+            // circulated between the different processing elements, and fed back to the
+            // first PE once it has completed its first iteration (when FIOS_input_sel_reg is set).
+        
+            always @ (posedge clock_i) begin
+
+                if (reset_i || done_o)
+                    FIOS_input_sel_reg <= 0;
+                else if (done[0] && ~FIOS_input_sel_reg)
+                    FIOS_input_sel_reg <= 1;
+                else
+                    FIOS_input_sel_reg <= FIOS_input_sel_reg;
+            
+            end
+                            
+            always_comb begin
+            
+                if (FIOS_input_sel_reg) begin
+                                        
+                    start[0] = start[PE_NB];
+                    
+                end else begin
+                    
+                    start[0] = start_i;
+                    
+                end
+            
+            end
+            
+            // In folded configuration, a counter is incremented
+            // at every shift of the a input register. FIOS output
+            // is available during the last iteration of the PE (s-1) % PE_NB .
+            
+            reg output_en_reg;
+            
+            reg [$clog2((s-1)/PE_NB+1)-1:0] a_shift_counter;
+            
+            always @ (posedge clock_i) begin
+            
+                if (reset_i || done_o)
+                    a_shift_counter <= 0;
+                else if (a_shift[PE_NB-1] && ~output_en_reg)
+                    a_shift_counter <= a_shift_counter+1;
+                else
+                    a_shift_counter <= a_shift_counter;
+            
+            end
+
+            
+            always @ (posedge clock_i) begin
+            
+                if (reset_i || done_o)
+                    output_en_reg <= 0;
+                else if (a_shift_counter == (s-1)/PE_NB && a_shift[(s-1) % PE_NB] && ~output_en_reg)
+                    output_en_reg <= 1;
+                else
+                    output_en_reg <= output_en_reg;
+            
+            end
+            
+            assign RES_push_o = output_en_reg ? RES_push_reg : 0;
+            
+            
+            assign done_o = output_en_reg ? done_reg : 0;
+            
+        end else begin
+        
+            assign start[0] = start_i;
+            
+            assign RES_push_o = RES_push_reg;
+            
+            assign done_o = done_reg;
+        
+        end
+    endgenerate        
     
     
     // The a register is shifted to provide

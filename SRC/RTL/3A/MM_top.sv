@@ -10,10 +10,10 @@ module MM_top #(parameter  string CONFIGURATION = "FOLD",
                         int    s = 8,
              localparam int    DSP_REG_LEVEL = ABREG+MREG+1,
              localparam int   PE_DELAY = (DSP_REG_LEVEL == 1) ? 6 + ((CREG && CASCADE == 0) ? 1 : 0) :
-                                         (DSP_REG_LEVEL == 2) ? 6 + ((CREG && CASCADE == 0) ? 1 : 0) :
-                                         (DSP_REG_LEVEL == 3) ? 8 + ((CREG && CASCADE == 0) ? 1 : 0) :
-                                         5 + ((CREG && CASCADE == 0) ? 1 : 0),
-                        int    PE_NB = (CONFIGURATION == "FOLD") ? (2*s+2+DSP_REG_LEVEL-1)/PE_DELAY+1 :
+                                         (DSP_REG_LEVEL == 2) ? 7 + ((CREG && CASCADE == 0) ? 1 : 0) :
+                                         (DSP_REG_LEVEL == 3) ? 9 + ((CREG && CASCADE == 0) ? 1 : 0) :
+                                         6 + ((CREG && CASCADE == 0) ? 1 : 0),
+                        int    PE_NB = (CONFIGURATION == "FOLD") ? (3*s+2*DSP_REG_LEVEL+((DSP_REG_LEVEL == 3) ? 1 :0))/PE_DELAY+1 :
                                        s                                                               ) (
         input clock_i, reset_i,
         

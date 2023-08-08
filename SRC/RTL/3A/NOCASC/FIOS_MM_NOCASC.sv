@@ -13,7 +13,7 @@ module FIOS_MM_NOCASC #(parameter  string CONFIGURATION = "EXPAND",
                                           (DSP_REG_LEVEL == 2) ? 7 + (CREG ? 1 : 0) :
                                           (DSP_REG_LEVEL == 3) ? 9 + (CREG ? 1 : 0) :
                                           6 + (CREG ? 1 : 0),
-                            int   PE_NB = (CONFIGURATION == "FOLD") ? (2*s+2+DSP_REG_LEVEL-1)/PE_DELAY+1 :
+                            int   PE_NB = (CONFIGURATION == "FOLD") ? ((3*s+2*DSP_REG_LEVEL+((DSP_REG_LEVEL == 3) ? 1 :0))/PE_DELAY+1) :
                                           s) (
         input         clock_i,
         
@@ -65,21 +65,58 @@ module FIOS_MM_NOCASC #(parameter  string CONFIGURATION = "EXPAND",
             
     assign p_prime_0[0] = p_prime_0_i;
     
+    generate
         
-    always_comb begin
-    
-        b[0] = b_i;
-        p[0] = p_i;
+        // Operands are circulated within the multiplier and fed back to the first PE
+        // when it has completed its first iteration (when FIOS_input_sel is set).
+        if (CONFIGURATION == "FOLD") begin
         
-        C_input[0] = 0;
+            always_comb begin
+            
+                if (FIOS_input_sel_i) begin
+                
+                    b[0] = b[PE_NB];
+                    p[0] = p[PE_NB];
+                    
+                    C_input[0] = C_input[PE_NB];
+                    C_input_1_delay[0] = C_input_1_delay[PE_NB];
+                    C_input_2_delay[0] = C_input_2_delay[PE_NB];
+                                   
+                end else begin
+                
+                    b[0] = b_i;
+                    p[0] = p_i;
+                    
+                    C_input[0] = 0;
+                    C_input_1_delay[0] = 0;
+                    C_input_2_delay[0] = 0;
+                                    
+                end
+                
+            end
+            
+            
+            assign RES_o = RES[(s-1) % PE_NB];
+                    
+        end else begin
         
-        C_input_1_delay[0] = 0;
-        C_input_2_delay[0] = 0;
-                        
-    end
-    
-    assign RES_o = RES[PE_NB-1];
-    
+            always_comb begin
+            
+                b[0] = b_i;
+                p[0] = p_i;
+                
+                C_input[0] = 0;
+                
+                C_input_1_delay[0] = 0;
+                C_input_2_delay[0] = 0;
+                                
+            end
+            
+            assign RES_o = RES[PE_NB-1];
+        
+        end
+    endgenerate
+        
 
     genvar i;
     
