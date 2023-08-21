@@ -1,7 +1,8 @@
 `timescale 1ns / 1ps
 
 
-module PE_CASC_4A #(parameter  int   ABREG = 1,
+module PE_CASC_4A #(parameter string DSP_PRIMITIVE = "DSP48E2",
+                        int   ABREG = 1,
                        int   MREG = 1,
                        int   FIRST = 0,
             localparam int   DSP_REG_LEVEL = 1+ABREG+MREG,
@@ -176,8 +177,11 @@ module PE_CASC_4A #(parameter  int   ABREG = 1,
         
     endgenerate
     
+    generate
     
-    DSP48E2_CASC_4A #(.ABREG(ABREG), .MREG(MREG), .CREG(1)) DSP48E2_CASC_4A_inst (
+        if (DSP_PRIMITIVE == "generic_DSP_4A") begin
+        
+        generic_DSP_CASC_4A #(.ABREG(ABREG), .MREG(MREG), .CREG(1)) generic_DSP_CASC_4A_inst (
 
         .clock_i   (clock_i),
         
@@ -197,6 +201,56 @@ module PE_CASC_4A #(parameter  int   ABREG = 1,
         .PCOUT_o(PCOUT_o)
         
     );
+        
+        end else if (DSP_PRIMITIVE == "DSP48E2") begin
+        
+            DSP48E2_CASC_4A #(.ABREG(ABREG), .MREG(MREG), .CREG(1)) DSP48E2_CASC_4A_inst (
+
+        .clock_i   (clock_i),
+        
+
+        .CREG_en_i (CREG_en_reg),
+
+        .OPMODE_i  (OPMODE_i),
+        
+        .A_i       (DSP_A_input),
+        .B_i       (DSP_B_input),
+        .C_i       (DSP_C_input),
+        
+        .PCIN_i(PCIN_i),
+        
+        
+        .P_o       (RES),
+        .PCOUT_o(PCOUT_o)
+        
+    );
+        
+        end else if (DSP_PRIMITIVE == "DSP58") begin
+        
+            DSP58_CASC_4A #(.ABREG(ABREG), .MREG(MREG), .CREG(1)) DSP58_CASC_4A_inst (
+
+        .clock_i   (clock_i),
+        
+
+        .CREG_en_i (CREG_en_reg),
+
+        .OPMODE_i  (OPMODE_i),
+        
+        .A_i       (DSP_A_input),
+        .B_i       (DSP_B_input),
+        .C_i       (DSP_C_input),
+        
+        .PCIN_i(PCIN_i),
+        
+        
+        .P_o       (RES),
+        .PCOUT_o(PCOUT_o)
+        
+    );
+        
+        end
+    
+    endgenerate
     
     
     // DSP output delay logic used to capture partial results

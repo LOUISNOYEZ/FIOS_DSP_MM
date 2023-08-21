@@ -3,6 +3,7 @@
 // This module contains the FIOS multiplier as well as its control logic.
 
 module FIOS_NOCASC_3A #(parameter  string CONFIGURATION = "EXPAND",
+                                    string DSP_PRIMITIVE = "DSP48E1",
                          int    LOOP_DELAY = 0,
                          int    ABREG = 1,
                          int    MREG = 1,
@@ -351,7 +352,7 @@ module FIOS_NOCASC_3A #(parameter  string CONFIGURATION = "EXPAND",
     endgenerate
     
     
-    FIOS_MM_NOCASC_3A #(.CONFIGURATION(CONFIGURATION), .ABREG(ABREG), .MREG(MREG), .CREG(CREG), .s(s), .LOOP_DELAY(LOOP_DELAY)) FIOS_MM_NOCASC_3A_inst (
+    FIOS_MM_NOCASC_3A #(.CONFIGURATION(CONFIGURATION), .ABREG(ABREG), .MREG(MREG), .CREG(CREG), .s(s), .LOOP_DELAY(LOOP_DELAY), .DSP_PRIMITIVE(DSP_PRIMITIVE)) FIOS_MM_NOCASC_3A_inst (
         
         .clock_i(clock_i),
         

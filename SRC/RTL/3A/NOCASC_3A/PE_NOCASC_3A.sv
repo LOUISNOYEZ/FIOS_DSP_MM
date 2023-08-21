@@ -1,7 +1,8 @@
 `timescale 1ns / 1ps
 
 
-module PE_NOCASC_3A #(parameter  int   ABREG = 1,
+module PE_NOCASC_3A #(parameter string DSP_PRIMITIVE = "DSP48E1",
+                       int   ABREG = 1,
                        int   MREG = 1,
                        int   CREG = 1,
                        int   FIRST = 0,
@@ -172,8 +173,11 @@ module PE_NOCASC_3A #(parameter  int   ABREG = 1,
         
     endgenerate
     
+    generate
     
-    DSP48E1_NOCASC_3A #(.ABREG(ABREG), .MREG(MREG), .CREG(CREG)) DSP48E1_NOCASC_3A_inst (
+        if (DSP_PRIMITIVE == "generic_DSP_3A") begin
+        
+            generic_DSP_NOCASC_3A #(.ABREG(ABREG), .MREG(MREG), .CREG(CREG)) generic_DSP_NOCASC_3A_inst (
 
         .clock_i   (clock_i),
         
@@ -190,6 +194,70 @@ module PE_NOCASC_3A #(parameter  int   ABREG = 1,
         .P_o       (RES)
         
     );
+        
+        end else if (DSP_PRIMITIVE == "DSP48") begin
+        
+            DSP48_NOCASC_3A #(.ABREG(ABREG), .MREG(MREG), .CREG(CREG)) DSP48_NOCASC_3A_inst (
+
+        .clock_i   (clock_i),
+        
+
+        .CREG_en_i (CREG_en_reg),
+
+        .OPMODE_i  (OPMODE_i),
+        
+        .A_i       (DSP_A_input),
+        .B_i       (DSP_B_input),
+        .C_i       (DSP_C_input),
+        
+        
+        .P_o       (RES)
+        
+    );
+        
+        end else if (DSP_PRIMITIVE == "DSP48E") begin
+        
+            DSP48E_NOCASC_3A #(.ABREG(ABREG), .MREG(MREG), .CREG(CREG)) DSP48E_NOCASC_3A_inst (
+
+        .clock_i   (clock_i),
+        
+
+        .CREG_en_i (CREG_en_reg),
+
+        .OPMODE_i  (OPMODE_i),
+        
+        .A_i       (DSP_A_input),
+        .B_i       (DSP_B_input),
+        .C_i       (DSP_C_input),
+        
+        
+        .P_o       (RES)
+        
+    );
+        
+        end else if (DSP_PRIMITIVE == "DSP48E1") begin
+        
+            DSP48E1_NOCASC_3A #(.ABREG(ABREG), .MREG(MREG), .CREG(CREG)) DSP48E1_NOCASC_3A_inst (
+
+        .clock_i   (clock_i),
+        
+
+        .CREG_en_i (CREG_en_reg),
+
+        .OPMODE_i  (OPMODE_i),
+        
+        .A_i       (DSP_A_input),
+        .B_i       (DSP_B_input),
+        .C_i       (DSP_C_input),
+        
+        
+        .P_o       (RES)
+        
+    );
+        
+        end
+    
+    endgenerate
     
     
     // DSP output delay logic used to capture partial results

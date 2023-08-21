@@ -3,6 +3,7 @@
 // This module is the Montgomery FIOS multiplier.
 
 module FIOS_MM_NOCASC_3A #(parameter  string CONFIGURATION = "EXPAND",
+                                      string DSP_PRIMITIVE = "DSP48E1",
                             int    LOOP_DELAY = 0,
                             int    ABREG = 1,
                             int    MREG = 1,
@@ -188,7 +189,7 @@ module FIOS_MM_NOCASC_3A #(parameter  string CONFIGURATION = "EXPAND",
                             
             
     
-            PE_NOCASC_3A #(.ABREG(ABREG), .MREG(MREG), .CREG(CREG), .FIRST((i == 0) ? 1 : 0)) PE_NOCASC_3A_inst (
+            PE_NOCASC_3A #(.ABREG(ABREG), .MREG(MREG), .CREG(CREG), .FIRST((i == 0) ? 1 : 0), .DSP_PRIMITIVE(DSP_PRIMITIVE)) PE_NOCASC_3A_inst (
                 .clock_i(clock_i),
                 
                 .a_reg_en_i(a_reg_en_i[i]),

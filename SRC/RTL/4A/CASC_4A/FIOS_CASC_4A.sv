@@ -3,6 +3,7 @@
 // This module contains the FIOS multiplier as well as its control logic.
 
 module FIOS_CASC_4A #(parameter  string CONFIGURATION = "EXPAND",
+                                string DSP_PRIMITIVE = "DSP48E2",
                          int    LOOP_DELAY = 0,
                          int    ABREG = 1,
                          int    MREG = 1,
@@ -349,7 +350,7 @@ module FIOS_CASC_4A #(parameter  string CONFIGURATION = "EXPAND",
     
     
     FIOS_MM_CASC_4A #(.CONFIGURATION(CONFIGURATION), .LOOP_DELAY(LOOP_DELAY), 
-              .ABREG(ABREG), .MREG(MREG), .s(s), .COL_LENGTH(COL_LENGTH)) FIOS_MM_CASC_4A_inst (
+              .ABREG(ABREG), .MREG(MREG), .s(s), .COL_LENGTH(COL_LENGTH), .DSP_PRIMITIVE(DSP_PRIMITIVE)) FIOS_MM_CASC_4A_inst (
         
         .clock_i(clock_i),
         

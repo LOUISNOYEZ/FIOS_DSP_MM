@@ -1,7 +1,7 @@
 `timescale 1ns / 1ps
 
 
-module DSP_model_NOCASC_4A #(parameter ABREG = 1,
+module generic_DSP_CASC_3A #(parameter ABREG = 1,
                          MREG = 1,
                          CREG = 1,
                localparam DSP_REG_LEVEL = 1+ABREG+MREG) (
@@ -14,19 +14,23 @@ module DSP_model_NOCASC_4A #(parameter ABREG = 1,
 
 
     // DSP block operation are selected using the OPMODE signal.
-    input [8:0] OPMODE_i,
+    input [6:0] OPMODE_i,
 
 
     input [16:0] A_i,
     input [16:0] B_i,
     input [33:0] C_i,
+    
+    input [47:0] PCIN_i,
 
 
-    output [33:0] P_o
+    output [33:0] P_o,
+    
+    output [47:0] PCOUT_o,
     
     );
 
-    reg [8:0] OPMODE;
+    reg [6:0] OPMODE;
     
     always @ (posedge clock_i)
         OPMODE <= OPMODE_i;
@@ -84,20 +88,13 @@ module DSP_model_NOCASC_4A #(parameter ABREG = 1,
         end
     endgenerate
     
-    reg [47:0] XY, Z, W;
-    
-    always_comb begin
-        case (OPMODE[8:7])
-            2'b00 : W <= 0;
-            2'b11 : W <= C;
-            default : W <= 0;
-        endcase
-    end
+    reg [47:0] XY, Z;
     
     always_comb begin
         case (OPMODE[3:0])
             4'b0000 : XY <= 0;
             4'b0101 : XY <= M;
+            4'b1100 : XY <= C;
             default : XY <= 0;
         endcase
     end
@@ -107,15 +104,17 @@ module DSP_model_NOCASC_4A #(parameter ABREG = 1,
             3'b000 : Z <= 0;
             3'b110 : Z <= P >> 17;
             3'b010 : Z <= P;
+            3'b001 : Z <= PCIN_i;
             default : Z <= 0;
         endcase
     end
 
     always @ (posedge clock_i)
-        P <= XY + Z + W;
+        P <= XY + Z;
 
 
     assign P_o = P[33:0];
-
+    
+    assign PCOUT_o = P;
 
 endmodule

@@ -3,6 +3,7 @@
 // This module is the Montgomery FIOS multiplier.
 
 module FIOS_MM_CASC_4A #(parameter  string CONFIGURATION = "EXPAND",
+                                    string DSP_PRIMITIVE = "DSP48E2",
                             int    LOOP_DELAY = 0,
                             int    ABREG = 1,
                             int    MREG = 1,
@@ -279,7 +280,7 @@ module FIOS_MM_CASC_4A #(parameter  string CONFIGURATION = "EXPAND",
             
             end
     
-            PE_CASC_4A #(.ABREG(ABREG), .MREG(MREG), .FIRST(((i == 0 || i == COL_LENGTH) && ((CONFIGURATION == "FOLD") || DSP_REG_LEVEL == 2)) ? 1 : 0)) PE_CASC_4A_inst (
+            PE_CASC_4A #(.ABREG(ABREG), .MREG(MREG), .FIRST(((i == 0 || i == COL_LENGTH) && ((CONFIGURATION == "FOLD") || DSP_REG_LEVEL == 2)) ? 1 : 0), .DSP_PRIMITIVE(DSP_PRIMITIVE)) PE_CASC_4A_inst (
                 .clock_i(clock_i),
                 
                 .a_reg_en_i(a_reg_en_i[i]),

@@ -8,6 +8,7 @@ module MM_top_v_wrapper #(// Bit width of the operands and number of 17 bits blo
                        // instead of WIDTH to compute s in order not to have to perform
                        // the final subtraction in the Montgomery Algorithm.
                        parameter  integer CONFIGURATION = 0,
+                       parameter integer DSP_PRIMITIVE = 0,
                         //parameter string CONFIGURATION = "FOLD",
                                   integer ABREG = 1,
                                   integer MREG = 1,
@@ -15,7 +16,6 @@ module MM_top_v_wrapper #(// Bit width of the operands and number of 17 bits blo
                                   integer CASCADE = 0,
                                   integer LOOP_DELAY = 0,
                                   integer WIDTH = 256,
-                                  integer ADDER_TYPE = 1,
                                   integer COL_LENGTH = 168,
                        localparam integer s = ((WIDTH+1)/17+1))
     (
@@ -60,7 +60,15 @@ module MM_top_v_wrapper #(// Bit width of the operands and number of 17 bits blo
     wire [16:0] BRAM_din;
     
     
-    MM_top #(.CONFIGURATION(CONFIGURATION == 1 ? "FOLD" : "EXPAND"), .ABREG(ABREG), .MREG(MREG), .CREG(CREG), .CASCADE(CASCADE), .LOOP_DELAY(LOOP_DELAY), .s(s), .ADDER_TYPE(ADDER_TYPE), .COL_LENGTH(COL_LENGTH)) MM_top_inst (
+    MM_top #(.CONFIGURATION(CONFIGURATION == 1 ? "FOLD" : "EXPAND"), .ABREG(ABREG), .MREG(MREG), .CREG(CREG), .CASCADE(CASCADE), .LOOP_DELAY(LOOP_DELAY), .s(s), 
+    .DSP_PRIMITIVE(DSP_PRIMITIVE == 0 ? "generic_DSP_3A" :
+                   DSP_PRIMITIVE == 1 ? "DSP48" :
+                   DSP_PRIMITIVE == 2 ? "DSP48E" :
+                   DSP_PRIMITIVE == 3 ? "DSP48E1" :
+                   DSP_PRIMITIVE == 4 ? "generic_DSP_4A" :
+                   DSP_PRIMITIVE == 5 ? "DSP48E2" :
+                   DSP_PRIMITIVE == 6 ? "DSP58" :
+                   "DSP48E2"), .COL_LENGTH(COL_LENGTH)) MM_top_inst (
         .clock_i(clock_i), .reset_i(reset_i),
         
         .start_i(start_i),

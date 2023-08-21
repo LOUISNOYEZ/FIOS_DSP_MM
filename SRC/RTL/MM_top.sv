@@ -2,13 +2,13 @@
 
 
 module MM_top #(parameter  string CONFIGURATION = "FOLD",
+                           string DSP_PRIMITIVE = "DSP48E2",
                         int    ABREG = 1,
                         int    MREG = 1,
                         int    CREG = 1,
                         int    LOOP_DELAY = 0,
                         int    CASCADE = 0,
                         int    s = 8,
-                        int    ADDER_TYPE = 1,
                         int COL_LENGTH = 168,
              localparam int    DSP_REG_LEVEL = ABREG+MREG+1,
              localparam int   PE_DELAY = ((ADDER_TYPE == 0) ? 1 : 0) + ((CREG && (CASCADE == 0)) ? 1 : 0) + ((DSP_REG_LEVEL == 1) ? 5 :
@@ -162,11 +162,14 @@ module MM_top #(parameter  string CONFIGURATION = "FOLD",
     
     generate
     
-        if (ADDER_TYPE == 0) begin
+        if ((DSP_PRIMITIVE == "generic_DSP_3A") ||
+            (DSP_PRIMITIVE == "DSP48") ||
+            (DSP_PRIMITIVE == "DSP48E") ||
+            (DSP_PRIMITIVE == "DSP48E1")) begin
     
         if (CASCADE == 0) begin
     
-            FIOS_NOCASC_3A #(.CONFIGURATION(CONFIGURATION), .ABREG(ABREG), .MREG(MREG), .CREG(CREG), .s(s), .LOOP_DELAY(LOOP_DELAY)) FIOS_NOCASC_3A_inst (
+            FIOS_NOCASC_3A #(.CONFIGURATION(CONFIGURATION), .ABREG(ABREG), .MREG(MREG), .CREG(CREG), .s(s), .LOOP_DELAY(LOOP_DELAY), .DSP_PRIMITIVE(DSP_PRIMITIVE)) FIOS_NOCASC_3A_inst (
                         .clock_i(clock_i), .reset_i(reset_i),
                         
                         .start_i(FIOS_start),
@@ -196,7 +199,7 @@ module MM_top #(parameter  string CONFIGURATION = "FOLD",
             
         end else if (CASCADE == 1) begin
         
-            FIOS_CASC_3A #(.CONFIGURATION(CONFIGURATION), .ABREG(ABREG), .MREG(MREG), .CREG(CREG), .s(s), .LOOP_DELAY(LOOP_DELAY), .COL_LENGTH(COL_LENGTH)) FIOS_CASC_3A_inst (
+            FIOS_CASC_3A #(.CONFIGURATION(CONFIGURATION), .ABREG(ABREG), .MREG(MREG), .CREG(CREG), .s(s), .LOOP_DELAY(LOOP_DELAY), .COL_LENGTH(COL_LENGTH), .DSP_PRIMITIVE(DSP_PRIMITIVE)) FIOS_CASC_3A_inst (
                         .clock_i(clock_i), .reset_i(reset_i),
                         
                         .start_i(FIOS_start),
@@ -226,11 +229,11 @@ module MM_top #(parameter  string CONFIGURATION = "FOLD",
         
         end
         
-        end else if (ADDER_TYPE == 1) begin
+        end else begin
             
         if (CASCADE == 0) begin
             
-            FIOS_NOCASC_4A #(.CONFIGURATION(CONFIGURATION), .ABREG(ABREG), .MREG(MREG), .CREG(CREG), .s(s), .LOOP_DELAY(LOOP_DELAY)) FIOS_NOCASC_4A_inst (
+            FIOS_NOCASC_4A #(.CONFIGURATION(CONFIGURATION), .ABREG(ABREG), .MREG(MREG), .CREG(CREG), .s(s), .LOOP_DELAY(LOOP_DELAY), .DSP_PRIMITIVE(DSP_PRIMITIVE)) FIOS_NOCASC_4A_inst (
                         .clock_i(clock_i), .reset_i(reset_i),
                         
                         .start_i(FIOS_start),
@@ -260,7 +263,7 @@ module MM_top #(parameter  string CONFIGURATION = "FOLD",
         
         end else if (CASCADE == 1) begin
         
-            FIOS_CASC_4A #(.CONFIGURATION(CONFIGURATION), .ABREG(ABREG), .MREG(MREG), .CREG(CREG), .s(s), .LOOP_DELAY(LOOP_DELAY), .COL_LENGTH(COL_LENGTH)) FIOS_CASC_4A_inst (
+            FIOS_CASC_4A #(.CONFIGURATION(CONFIGURATION), .ABREG(ABREG), .MREG(MREG), .CREG(CREG), .s(s), .LOOP_DELAY(LOOP_DELAY), .COL_LENGTH(COL_LENGTH), .DSP_PRIMITIVE(DSP_PRIMITIVE)) FIOS_CASC_4A_inst (
                         .clock_i(clock_i), .reset_i(reset_i),
                         
                         .start_i(FIOS_start),
