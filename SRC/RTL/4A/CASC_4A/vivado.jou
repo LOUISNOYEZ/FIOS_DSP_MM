@@ -1,0 +1,13 @@
+#-----------------------------------------------------------
+# Vivado v2022.1.2 (64-bit)
+# SW Build 3605665 on Fri Aug  5 22:52:02 MDT 2022
+# IP Build 3603185 on Sat Aug  6 04:07:44 MDT 2022
+# Start of session at: Wed Aug  9 10:18:45 2023
+# Process ID: 851603
+# Current directory: /home/louis/FPL/SRC/RTL/4A/CASC_4A
+# Command line: vivado
+# Log file: /home/louis/FPL/SRC/RTL/4A/CASC_4A/vivado.log
+# Journal file: /home/louis/FPL/SRC/RTL/4A/CASC_4A/vivado.jou
+# Running On: GCP-PCP-NOYEZ, OS: Linux, CPU Frequency: 2400.000 MHz, CPU Physical cores: 4, Host memory: 15990 MB
+#-----------------------------------------------------------
+start_gui

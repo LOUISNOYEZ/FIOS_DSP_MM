@@ -19,6 +19,8 @@ module top_bd_wrapper_tb #(parameter WIDTH = 256) ();
     localparam PERIOD = 10,
                HALF_PERIOD = PERIOD/2;
 
+    localparam int ADDER_TYPE = 0;
+
     // Bit width of the operands and number of 17 bits blocks
     // required to slice operands. Note that WIDTH+2 is used
     // instead of WIDTH to compute s in order not to have to perform
@@ -66,17 +68,30 @@ module top_bd_wrapper_tb #(parameter WIDTH = 256) ();
 
 
     generate
-    
+        if (ADDER_TYPE == 0) begin
         if (DUT.sim_top_bd_i.MM_demo_0.inst.CASCADE == 1) begin
         
-            assign FIOS_start = DUT.sim_top_bd_i.MM_demo_0.inst.MM_top_inst.genblk2.FIOS_CASC_inst.start_i;
-            assign FIOS_done = DUT.sim_top_bd_i.MM_demo_0.inst.MM_top_inst.genblk2.FIOS_CASC_inst.done_o;
+            assign FIOS_start = DUT.sim_top_bd_i.MM_demo_0.inst.MM_top_inst.genblk2.genblk1.FIOS_CASC_3A_inst.start_i;
+            assign FIOS_done = DUT.sim_top_bd_i.MM_demo_0.inst.MM_top_inst.genblk2.genblk1.FIOS_CASC_3A_inst.done_o;
 
         end else begin
         
-            assign FIOS_start = DUT.sim_top_bd_i.MM_demo_0.inst.MM_top_inst.genblk2.FIOS_NOCASC_inst.start_i;
-            assign FIOS_done = DUT.sim_top_bd_i.MM_demo_0.inst.MM_top_inst.genblk2.FIOS_NOCASC_inst.done_o;
+            assign FIOS_start = DUT.sim_top_bd_i.MM_demo_0.inst.MM_top_inst.genblk2.genblk1.FIOS_NOCASC_3A_inst.start_i;
+            assign FIOS_done = DUT.sim_top_bd_i.MM_demo_0.inst.MM_top_inst.genblk2.genblk1.FIOS_NOCASC_3A_inst.done_o;
 
+        end
+        end else if (ADDER_TYPE == 1) begin
+        if (DUT.sim_top_bd_i.MM_demo_0.inst.CASCADE == 1) begin
+        
+            assign FIOS_start = DUT.sim_top_bd_i.MM_demo_0.inst.MM_top_inst.genblk2.genblk1.FIOS_CASC_4A_inst.start_i;
+            assign FIOS_done = DUT.sim_top_bd_i.MM_demo_0.inst.MM_top_inst.genblk2.genblk1.FIOS_CASC_4A_inst.done_o;
+
+        end else begin
+        
+            assign FIOS_start = DUT.sim_top_bd_i.MM_demo_0.inst.MM_top_inst.genblk2.genblk1.FIOS_NOCASC_4A_inst.start_i;
+            assign FIOS_done = DUT.sim_top_bd_i.MM_demo_0.inst.MM_top_inst.genblk2.genblk1.FIOS_NOCASC_4A_inst.done_o;
+
+        end
         end
         
     endgenerate
