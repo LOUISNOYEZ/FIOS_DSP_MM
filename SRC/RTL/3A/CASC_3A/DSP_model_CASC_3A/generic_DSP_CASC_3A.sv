@@ -26,7 +26,7 @@ module generic_DSP_CASC_3A #(parameter ABREG = 1,
 
     output [33:0] P_o,
     
-    output [47:0] PCOUT_o,
+    output [47:0] PCOUT_o
     
     );
 
@@ -104,6 +104,7 @@ module generic_DSP_CASC_3A #(parameter ABREG = 1,
             3'b000 : Z <= 0;
             3'b110 : Z <= P >> 17;
             3'b010 : Z <= P;
+            3'b011 : Z <= C;
             3'b001 : Z <= PCIN_i;
             default : Z <= 0;
         endcase

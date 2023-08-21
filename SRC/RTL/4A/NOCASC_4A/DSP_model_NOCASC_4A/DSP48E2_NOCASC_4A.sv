@@ -87,7 +87,7 @@ module DSP48E2_NOCASC_4A #(parameter ABREG = 1,
         .A({{13{1'b0}}, A_i}), // 30-bit input: A data
         .B({1'b0, B_i}),       // 18-bit input: B data
         .C({{14{1'b0}},C_i}),  // 48-bit input: C data
-        .CARRYIN(),            // 1-bit input: Carry-in
+        .CARRYIN(0),            // 1-bit input: Carry-in
         .D(),                  // 27-bit input: D data
         // Reset/Clock Enable inputs: Reset/Clock Enable Inputs
         .CEA1(1'b1),           // 1-bit input: Clock enable for 1st stage AREG

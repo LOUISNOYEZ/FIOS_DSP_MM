@@ -90,7 +90,7 @@ DSP58 #(
       .A({{17{1'b0}},A_i}),                           // 34-bit input: A data
       .B({{7{1'b0}},B_i}),                           // 24-bit input: B data
       .C({{10{1'b0}},C_i}),                           // 58-bit input: C data
-      .CARRYIN(),               // 1-bit input: Carry-in
+      .CARRYIN(0),               // 1-bit input: Carry-in
       .D(),                           // 27-bit input: D data
       // Reset/Clock Enable inputs: Reset/Clock Enable Inputs
       .ASYNC_RST(1'b0),           // 1-bit input: Asynchronous reset for all registers.

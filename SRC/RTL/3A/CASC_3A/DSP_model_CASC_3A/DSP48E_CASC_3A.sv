@@ -58,7 +58,7 @@ DSP48E #(
     .USE_MULT("MULT_S"), //Changed HHK
 
     .USE_PATTERN_DETECT("NO_PATDET"),
-    .USE_SIMD = "ONE48")
+    .USE_SIMD("ONE48"))
 
     DSP48E_inst (
     .ACOUT(), 
@@ -67,7 +67,7 @@ DSP48E #(
     .CARRYOUT(),
     .MULTSIGNOUT(),
     .OVERFLOW(),
-    .P(P) 
+    .P(P),
     .PATTERNBDETECT(),
     .PATTERNDETECT(),
     .PCOUT(PCOUT_o),
@@ -78,10 +78,10 @@ DSP48E #(
     .ALUMODE(4'b0),
     .B({1'b0, B_i}),
     .BCIN(),
-    .C(C_i),
+    .C({{14{1'b0}},C_i}),
     .CARRYCASCIN(),
-    .CARRYIN(),
-    .CARRYINSEL(),
+    .CARRYIN(0),
+    .CARRYINSEL(3'b0),
     .CEA1(1'b1),
     .CEA2(1'b1),
     .CEALUMODE(1'b1),

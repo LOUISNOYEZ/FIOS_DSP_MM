@@ -19,7 +19,7 @@ module DSP48_NOCASC_3A #(parameter ABREG = 1,
     input [33:0] C_i,
     
 
-    output [33:0] P_o,
+    output [33:0] P_o
     
     );
 
@@ -47,9 +47,9 @@ module DSP48_NOCASC_3A #(parameter ABREG = 1,
     .A({1'b0, A_i}),
     .B({1'b0, B_i}),
     .BCIN(),
-    .C(C_i),
-    .CARRYIN(),
-    .CARRYINSEL(),
+    .C({{14{1'b0}},C_i}),
+    .CARRYIN(0),
+    .CARRYINSEL(0),
     .CEA(1'b1),
     .CEB(1'b1),
     .CEC(CREG_en_i),
@@ -68,9 +68,9 @@ module DSP48_NOCASC_3A #(parameter ABREG = 1,
     .RSTCTRL(1'b0),
     .RSTM(1'b0),
     .RSTP(1'b0),
-    .SUBTRACT(),
+    .SUBTRACT(0)
     );
 
-    assign P_o = P[33:0]
+    assign P_o = P[33:0];
 
 endmodule

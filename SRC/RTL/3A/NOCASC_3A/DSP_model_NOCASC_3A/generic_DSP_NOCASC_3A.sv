@@ -21,7 +21,7 @@ module generic_DSP_NOCASC_3A #(parameter ABREG = 1,
     input [16:0] B_i,
     input [33:0] C_i,
 
-    output [33:0] P_o,
+    output [33:0] P_o
     
     );
 
@@ -99,6 +99,7 @@ module generic_DSP_NOCASC_3A #(parameter ABREG = 1,
             3'b000 : Z <= 0;
             3'b110 : Z <= P >> 17;
             3'b010 : Z <= P;
+            3'b011 : Z <= C;
             default : Z <= 0;
         endcase
     end

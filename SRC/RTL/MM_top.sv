@@ -11,11 +11,17 @@ module MM_top #(parameter  string CONFIGURATION = "FOLD",
                         int    s = 8,
                         int COL_LENGTH = 168,
              localparam int    DSP_REG_LEVEL = ABREG+MREG+1,
-             localparam int   PE_DELAY = ((ADDER_TYPE == 0) ? 1 : 0) + ((CREG && (CASCADE == 0)) ? 1 : 0) + ((DSP_REG_LEVEL == 1) ? 5 :
+             localparam int   PE_DELAY = (((DSP_PRIMITIVE == "generic_DSP_3A") ||
+                                                                     (DSP_PRIMITIVE == "DSP48") ||
+                                                                     (DSP_PRIMITIVE == "DSP48E") ||
+                                                                     (DSP_PRIMITIVE == "DSP48E1")) ? 1 : 0) + ((CREG && (CASCADE == 0)) ? 1 : 0) + ((DSP_REG_LEVEL == 1) ? 5 :
                                                                                (DSP_REG_LEVEL == 2) ? 6 :
                                                                                (DSP_REG_LEVEL == 3) ? 8 :
                                                                                 8),
-                        int    PE_NB = (CONFIGURATION == "FOLD") ? ((ADDER_TYPE == 0) ? (3*s+2*DSP_REG_LEVEL+((DSP_REG_LEVEL == 3) ? 1 :0)) : (2*s+2+DSP_REG_LEVEL-1))/PE_DELAY+1 :
+                        int    PE_NB = (CONFIGURATION == "FOLD") ? (((DSP_PRIMITIVE == "generic_DSP_3A") ||
+                                                                     (DSP_PRIMITIVE == "DSP48") ||
+                                                                     (DSP_PRIMITIVE == "DSP48E") ||
+                                                                     (DSP_PRIMITIVE == "DSP48E1")) ? (3*s+2*DSP_REG_LEVEL+((DSP_REG_LEVEL == 3) ? 1 :0)) : (2*s+2+DSP_REG_LEVEL-1))/PE_DELAY+1 :
                                        s                                                               ) (
         input clock_i, reset_i,
         

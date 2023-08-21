@@ -26,7 +26,7 @@ module generic_DSP_CASC_4A #(parameter ABREG = 1,
 
     output [33:0] P_o,
     
-    output [47:0] PCOUT_o,
+    output [47:0] PCOUT_o
     
     );
 
