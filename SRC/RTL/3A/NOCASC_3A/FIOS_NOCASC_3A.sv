@@ -8,6 +8,7 @@ module FIOS_NOCASC_3A #(parameter  string CONFIGURATION = "EXPAND",
                          int    MREG = 1,
                          int    CREG = 1,
                          int    s = 8,
+                         int COL_LENGTH = 168,
               localparam int   DSP_REG_LEVEL = ABREG+MREG+1,
               localparam int   PE_DELAY = (CREG ? 1 : 0) + ((DSP_REG_LEVEL == 1) ? 6 :
                                                             (DSP_REG_LEVEL == 2) ? 7 :

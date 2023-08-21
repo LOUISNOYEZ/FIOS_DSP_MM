@@ -5,7 +5,8 @@
 // store operand data in the Block RAM, launch an FIOS computation
 // and compare the stored result with the expected result.
 
-module top_bd_wrapper_tb #(parameter WIDTH = 256) ();
+module top_bd_wrapper_tb #(parameter WIDTH = 256,
+                                     int test_vector_nb = 100) ();
 
     // WARNING !! simulation test vector files sim_WIDTH.txt must be generated and included into the project
     // prior to running simulation.
@@ -188,7 +189,7 @@ module top_bd_wrapper_tb #(parameter WIDTH = 256) ();
         
         // While the test vector file has not been read completely, the n, n_prime_0, X and Y operands as
         // well as the expected result are read and tested.
-        while (! $feof(fd)) begin
+        while ((! $feof(fd)) & (count < test_vector_nb)) begin
         
         reset_i <= 1;
         en_res <= 0;
@@ -277,20 +278,20 @@ module top_bd_wrapper_tb #(parameter WIDTH = 256) ();
         // Computed result is compared to the expected result and the test vector count is incremented.       
         if(res == verif_res) begin
             $display("test vector %0d match at %0t ps.", count, $realtime);
-            SUCCESS_COUNT <= SUCCESS_COUNT + 1;
+            SUCCESS_COUNT = SUCCESS_COUNT + 1;
         end else begin
             $display("test vector %0d mismatch at %0t ps.", count, $realtime);
         end
 
         #(5*PERIOD); 
         
-        count <= count+1;
+        count = count+1;
         
         end
 
 
 
-        if (SUCCESS_COUNT-1 == count) begin
+        if (SUCCESS_COUNT == count) begin
             success_string = "SUCCESS";
             $display("SUCCESS");
         end else begin
@@ -303,3 +304,4 @@ module top_bd_wrapper_tb #(parameter WIDTH = 256) ();
     end
 
 endmodule
+

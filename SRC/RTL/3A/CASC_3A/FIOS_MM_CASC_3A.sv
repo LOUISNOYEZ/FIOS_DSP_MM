@@ -9,6 +9,7 @@ module FIOS_MM_CASC_3A #(parameter  string CONFIGURATION = "EXPAND",
                             int    CREG = 1,
                             int    RES_DELAY = 0,
                             int    s = 8,
+                            int COL_LENGTH = 168,
                  localparam int   DSP_REG_LEVEL = ABREG+MREG+1,
                  localparam int   PE_DELAY = (DSP_REG_LEVEL == 1) ? 6+RES_DELAY :
                                              (DSP_REG_LEVEL == 2) ? 7+RES_DELAY :
@@ -132,7 +133,7 @@ module FIOS_MM_CASC_3A #(parameter  string CONFIGURATION = "EXPAND",
         for (i = 0; i < PE_NB; i++) begin
         
             // Propagation of the operands is delayed between PE in order to synchronize them.
-            delay_line #(.WIDTH(34), .DELAY((i == PE_NB-1) || (i == 167) ? PE_DELAY+1+LOOP_DELAY : PE_DELAY)) operands_delay_line_inst (
+            delay_line #(.WIDTH(34), .DELAY((i == PE_NB-1) || (i == COL_LENGTH-1) ? PE_DELAY+1+LOOP_DELAY : PE_DELAY)) operands_delay_line_inst (
                 
                 .clock_i(clock_i), .reset_i(1'b0), .en_i( 1'b1),
                 
@@ -216,7 +217,7 @@ module FIOS_MM_CASC_3A #(parameter  string CONFIGURATION = "EXPAND",
                     
             end else begin
             
-                if (i == 167) begin
+                if (i == COL_LENGTH-1) begin
                 
                 
                    delay_line #(.WIDTH(17), .DELAY(LOOP_DELAY)) last_C_dly_inst (
@@ -230,7 +231,7 @@ module FIOS_MM_CASC_3A #(parameter  string CONFIGURATION = "EXPAND",
                                     
                 end
     
-                if (i == 167) begin
+                if (i == COL_LENGTH-1) begin
     
                     always @ (posedge clock_i)
                         C_input[i+1] <= last_C_delay;
@@ -245,7 +246,7 @@ module FIOS_MM_CASC_3A #(parameter  string CONFIGURATION = "EXPAND",
                     
                     reg [16:0] RES_delay;
                     
-                    if (i == 167) begin
+                    if (i == COL_LENGTH-1) begin
                     
                         always @ (posedge clock_i)
                             RES_delay <= last_C_delay;
@@ -254,8 +255,8 @@ module FIOS_MM_CASC_3A #(parameter  string CONFIGURATION = "EXPAND",
                     
                     always @ (posedge clock_i) begin
                     
-                        if ((i == 167) ? C_input_delay_en_i[168] : C_input_delay_en_i[i+1])
-                            C_input_1_delay[i+1] <= (i == 167) ? RES_delay : RES[i];
+                        if ((i == COL_LENGTH-1) ? C_input_delay_en_i[COL_LENGTH] : C_input_delay_en_i[i+1])
+                            C_input_1_delay[i+1] <= (i == COL_LENGTH-1) ? RES_delay : RES[i];
                         else
                             C_input_1_delay[i+1] <= C_input_1_delay[i+1];
                             
@@ -267,7 +268,7 @@ module FIOS_MM_CASC_3A #(parameter  string CONFIGURATION = "EXPAND",
                                 
                     always @ (posedge clock_i) begin
                     
-                        if ((i == 167) ? C_input_delay_en_i[168] : C_input_delay_en_i[i+1])
+                        if ((i == COL_LENGTH-1) ? C_input_delay_en_i[COL_LENGTH] : C_input_delay_en_i[i+1])
                             C_input_2_delay[i+1] <= C_input_1_delay[i+1];
                         else
                             C_input_2_delay[i+1] <= C_input_2_delay[i+1];
@@ -278,7 +279,7 @@ module FIOS_MM_CASC_3A #(parameter  string CONFIGURATION = "EXPAND",
             
             end
     
-            PE_CASC_3A #(.ABREG(ABREG), .MREG(MREG), .FIRST(((i == 0 || i == 168) && ((CONFIGURATION == "FOLD") || DSP_REG_LEVEL == 2)) ? 1 : 0)) PE_CASC_3A_inst (
+            PE_CASC_3A #(.ABREG(ABREG), .MREG(MREG), .FIRST(((i == 0 || i == COL_LENGTH) ? 1 : 0))) PE_CASC_3A_inst (
                 .clock_i(clock_i),
                 
                 .a_reg_en_i(a_reg_en_i[i]),
@@ -295,7 +296,7 @@ module FIOS_MM_CASC_3A #(parameter  string CONFIGURATION = "EXPAND",
                 
                 .CREG_en_i(CREG_en_i[i]),
                 
-                .OPMODE_i((((i == 0) || i == 168) && OPMODE_i[i][5:4] == 2'b01) ? 7'b0110101 : OPMODE_i[i]),
+                .OPMODE_i((((i == 0) || i == COL_LENGTH) && OPMODE_i[i][5:4] == 2'b01) ? 7'b0110101 : OPMODE_i[i]),
                 
                 .RES_delay_en_i(RES_delay_en_i[i]),
                 
@@ -308,12 +309,12 @@ module FIOS_MM_CASC_3A #(parameter  string CONFIGURATION = "EXPAND",
                 .p_i(p[i]),
                 
                 .C_i((CONFIGURATION == "FOLD") ? C_input[i] : 
-                (i == 0) ? 17'b0 : (i == 168) ? (OPMODE_i[168][4] == 1'b1) ? last_C_delay : C_input[168] : C_input[i]),
+                (i == 0) ? 17'b0 : (i == COL_LENGTH) ? (OPMODE_i[COL_LENGTH][4] == 1'b1) ? last_C_delay : C_input[COL_LENGTH] : C_input[i]),
                 .C_input_1_delay_i(C_input_1_delay[i]),
                 .C_input_2_delay_i(C_input_2_delay[i]),
                 
                 .PCIN_i(PCIN[i]),
-                .PCIN_cancel_i((i == 0) || (i == 168) ? 17'b0 : PCIN_cancel[i-1]),
+                .PCIN_cancel_i((i == 0) || (i == COL_LENGTH) ? 17'b0 : PCIN_cancel[i-1]),
                 
                 .p_prime_0_o(p_prime_0[i+1]),
                 
@@ -325,7 +326,7 @@ module FIOS_MM_CASC_3A #(parameter  string CONFIGURATION = "EXPAND",
             );
     
                 
-            if (i != PE_NB-1 && i != 167)
+            if (i != PE_NB-1 && i != COL_LENGTH-1)
                 assign PCIN[i+1] = PCOUT[i];
                
         end

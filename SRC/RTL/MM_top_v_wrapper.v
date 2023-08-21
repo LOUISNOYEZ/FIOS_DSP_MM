@@ -16,6 +16,7 @@ module MM_top_v_wrapper #(// Bit width of the operands and number of 17 bits blo
                                   integer LOOP_DELAY = 0,
                                   integer WIDTH = 256,
                                   integer ADDER_TYPE = 1,
+                                  integer COL_LENGTH = 168,
                        localparam integer s = ((WIDTH+1)/17+1))
     (
     input clock_i, reset_i,
@@ -59,7 +60,7 @@ module MM_top_v_wrapper #(// Bit width of the operands and number of 17 bits blo
     wire [16:0] BRAM_din;
     
     
-    MM_top #(.CONFIGURATION(CONFIGURATION == 1 ? "FOLD" : "EXPAND"), .ABREG(ABREG), .MREG(MREG), .CREG(CREG), .CASCADE(CASCADE), .LOOP_DELAY(LOOP_DELAY), .s(s), .ADDER_TYPE(ADDER_TYPE)) MM_top_inst (
+    MM_top #(.CONFIGURATION(CONFIGURATION == 1 ? "FOLD" : "EXPAND"), .ABREG(ABREG), .MREG(MREG), .CREG(CREG), .CASCADE(CASCADE), .LOOP_DELAY(LOOP_DELAY), .s(s), .ADDER_TYPE(ADDER_TYPE), .COL_LENGTH(COL_LENGTH)) MM_top_inst (
         .clock_i(clock_i), .reset_i(reset_i),
         
         .start_i(start_i),

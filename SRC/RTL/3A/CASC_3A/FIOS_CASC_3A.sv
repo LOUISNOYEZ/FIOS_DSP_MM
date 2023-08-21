@@ -7,6 +7,7 @@ module FIOS_CASC_3A #(parameter  string CONFIGURATION = "EXPAND",
                          int    ABREG = 1,
                          int    MREG = 1,
                          int    s = 8,
+                         int COL_LENGTH = 168,
               localparam int   DSP_REG_LEVEL = ABREG+MREG+1,
               localparam int   PE_DELAY = (DSP_REG_LEVEL == 1) ? 6 :
                                           (DSP_REG_LEVEL == 2) ? 7 :
@@ -305,7 +306,7 @@ module FIOS_CASC_3A #(parameter  string CONFIGURATION = "EXPAND",
 
             end else begin
             
-                delay_line #(.WIDTH(24), .DELAY((i == PE_NB-1) || (i == 167) ? PE_DELAY+1+LOOP_DELAY : PE_DELAY)) control_dly_inst (
+                delay_line #(.WIDTH(24), .DELAY((i == PE_NB-1) || (i == COL_LENGTH-1) ? PE_DELAY+1+LOOP_DELAY : PE_DELAY)) control_dly_inst (
                     .clock_i(clock_i), .reset_i(1'b0), .en_i(1'b1),
                     
                     .data_i({a_reg_en[i],
@@ -348,7 +349,7 @@ module FIOS_CASC_3A #(parameter  string CONFIGURATION = "EXPAND",
     
     
     FIOS_MM_CASC_3A #(.CONFIGURATION(CONFIGURATION), .LOOP_DELAY(LOOP_DELAY), 
-              .ABREG(ABREG), .MREG(MREG), .s(s)) FIOS_MM_CASC_3A_inst (
+              .ABREG(ABREG), .MREG(MREG), .s(s), .COL_LENGTH(COL_LENGTH)) FIOS_MM_CASC_3A_inst (
         
         .clock_i(clock_i),
         
