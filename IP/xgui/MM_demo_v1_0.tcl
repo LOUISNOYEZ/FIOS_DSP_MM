@@ -13,6 +13,8 @@ proc init_gui { IPINST } {
   ipgui::add_param $IPINST -name "CONFIGURATION" -parent ${Montgomery_Multiplier_parameters} -widget comboBox
   ipgui::add_param $IPINST -name "CASCADE" -parent ${Montgomery_Multiplier_parameters}
   ipgui::add_param $IPINST -name "LOOP_DELAY" -parent ${Montgomery_Multiplier_parameters}
+  ipgui::add_param $IPINST -name "DSP_PRIMITIVE" -parent ${Montgomery_Multiplier_parameters} -widget comboBox
+  ipgui::add_param $IPINST -name "COL_LENGTH" -parent ${Montgomery_Multiplier_parameters}
 
   #Adding Group
   set DSP_registers [ipgui::add_group $IPINST -name "DSP registers" -parent ${Page_0} -layout horizontal]
@@ -83,12 +85,30 @@ proc validate_PARAM_VALUE.CASCADE { PARAM_VALUE.CASCADE } {
 	return true
 }
 
+proc update_PARAM_VALUE.COL_LENGTH { PARAM_VALUE.COL_LENGTH } {
+	# Procedure called to update COL_LENGTH when any of the dependent parameters in the arguments change
+}
+
+proc validate_PARAM_VALUE.COL_LENGTH { PARAM_VALUE.COL_LENGTH } {
+	# Procedure called to validate COL_LENGTH
+	return true
+}
+
 proc update_PARAM_VALUE.CONFIGURATION { PARAM_VALUE.CONFIGURATION } {
 	# Procedure called to update CONFIGURATION when any of the dependent parameters in the arguments change
 }
 
 proc validate_PARAM_VALUE.CONFIGURATION { PARAM_VALUE.CONFIGURATION } {
 	# Procedure called to validate CONFIGURATION
+	return true
+}
+
+proc update_PARAM_VALUE.DSP_PRIMITIVE { PARAM_VALUE.DSP_PRIMITIVE } {
+	# Procedure called to update DSP_PRIMITIVE when any of the dependent parameters in the arguments change
+}
+
+proc validate_PARAM_VALUE.DSP_PRIMITIVE { PARAM_VALUE.DSP_PRIMITIVE } {
+	# Procedure called to validate DSP_PRIMITIVE
 	return true
 }
 
@@ -144,5 +164,15 @@ proc update_MODELPARAM_VALUE.LOOP_DELAY { MODELPARAM_VALUE.LOOP_DELAY PARAM_VALU
 proc update_MODELPARAM_VALUE.WIDTH { MODELPARAM_VALUE.WIDTH PARAM_VALUE.WIDTH } {
 	# Procedure called to set VHDL generic/Verilog parameter value(s) based on TCL parameter value
 	set_property value [get_property value ${PARAM_VALUE.WIDTH}] ${MODELPARAM_VALUE.WIDTH}
+}
+
+proc update_MODELPARAM_VALUE.DSP_PRIMITIVE { MODELPARAM_VALUE.DSP_PRIMITIVE PARAM_VALUE.DSP_PRIMITIVE } {
+	# Procedure called to set VHDL generic/Verilog parameter value(s) based on TCL parameter value
+	set_property value [get_property value ${PARAM_VALUE.DSP_PRIMITIVE}] ${MODELPARAM_VALUE.DSP_PRIMITIVE}
+}
+
+proc update_MODELPARAM_VALUE.COL_LENGTH { MODELPARAM_VALUE.COL_LENGTH PARAM_VALUE.COL_LENGTH } {
+	# Procedure called to set VHDL generic/Verilog parameter value(s) based on TCL parameter value
+	set_property value [get_property value ${PARAM_VALUE.COL_LENGTH}] ${MODELPARAM_VALUE.COL_LENGTH}
 }
 

@@ -2,18 +2,26 @@
 
 
 module MM_top #(parameter  string CONFIGURATION = "FOLD",
+                           string DSP_PRIMITIVE = "DSP48E2",
                         int    ABREG = 1,
                         int    MREG = 1,
                         int    CREG = 1,
                         int    LOOP_DELAY = 0,
                         int    CASCADE = 0,
                         int    s = 8,
+                        int COL_LENGTH = 168,
              localparam int    DSP_REG_LEVEL = ABREG+MREG+1,
-             localparam int   PE_DELAY = (DSP_REG_LEVEL == 1) ? 5 + ((CREG && CASCADE == 0) ? 1 : 0) :
-                                         (DSP_REG_LEVEL == 2) ? 6 + ((CREG && CASCADE == 0) ? 1 : 0) :
-                                         (DSP_REG_LEVEL == 3) ? 8 + ((CREG && CASCADE == 0) ? 1 : 0) :
-                                         5 + ((CREG && CASCADE == 0) ? 1 : 0),
-                        int    PE_NB = (CONFIGURATION == "FOLD") ? (2*s+2+DSP_REG_LEVEL-1)/PE_DELAY+1 :
+             localparam int   PE_DELAY = (((DSP_PRIMITIVE == "generic_DSP_3A") ||
+                                                                     (DSP_PRIMITIVE == "DSP48") ||
+                                                                     (DSP_PRIMITIVE == "DSP48E") ||
+                                                                     (DSP_PRIMITIVE == "DSP48E1")) ? 1 : 0) + ((CREG && (CASCADE == 0)) ? 1 : 0) + ((DSP_REG_LEVEL == 1) ? 5 :
+                                                                               (DSP_REG_LEVEL == 2) ? 6 :
+                                                                               (DSP_REG_LEVEL == 3) ? 8 :
+                                                                                8),
+                        int    PE_NB = (CONFIGURATION == "FOLD") ? (((DSP_PRIMITIVE == "generic_DSP_3A") ||
+                                                                     (DSP_PRIMITIVE == "DSP48") ||
+                                                                     (DSP_PRIMITIVE == "DSP48E") ||
+                                                                     (DSP_PRIMITIVE == "DSP48E1")) ? (3*s+2*DSP_REG_LEVEL+((DSP_REG_LEVEL == 3) ? 1 :0)) : (2*s+2+DSP_REG_LEVEL-1))/PE_DELAY+1 :
                                        s                                                               ) (
         input clock_i, reset_i,
         
@@ -158,72 +166,141 @@ module MM_top #(parameter  string CONFIGURATION = "FOLD",
     
     end
     
-    
     generate
     
-        if (CASCADE == 1) begin
+        if ((DSP_PRIMITIVE == "generic_DSP_3A") ||
+            (DSP_PRIMITIVE == "DSP48") ||
+            (DSP_PRIMITIVE == "DSP48E") ||
+            (DSP_PRIMITIVE == "DSP48E1")) begin
     
-            FIOS_CASC #(.CONFIGURATION(CONFIGURATION), .ABREG(ABREG), .MREG(MREG), .LOOP_DELAY(LOOP_DELAY), .s(s)) FIOS_CASC_inst (
-                .clock_i(clock_i), .reset_i(reset_i),
+        if (CASCADE == 0) begin
+    
+            FIOS_NOCASC_3A #(.CONFIGURATION(CONFIGURATION), .ABREG(ABREG), .MREG(MREG), .CREG(CREG), .s(s), .LOOP_DELAY(LOOP_DELAY), .DSP_PRIMITIVE(DSP_PRIMITIVE)) FIOS_NOCASC_3A_inst (
+                        .clock_i(clock_i), .reset_i(reset_i),
+                        
+                        .start_i(FIOS_start),
                 
-                .start_i(FIOS_start),
-        
-                
-                .p_prime_0_i(p_prime_0_reg),
-                
-                .a_i(a_reg[PE_NB*17-1:0]),
-                
-                .b_i(b_reg[16:0]),
-                .p_i(p_reg[16:0]),
-                
-                
-                .a_shift_o(a_shift),
-                
-                .b_fetch_o(b_fetch),
-                .p_fetch_o(p_fetch),
-                
-                .RES_push_o(RES_push),
-                
-                .done_o(FIOS_done),
-                
-                
-                .RES_o(RES)
-            
+                        
+                        .p_prime_0_i(p_prime_0_reg),
+                        
+                        .a_i(a_reg[PE_NB*17-1:0]),
+                        
+                        .b_i(b_reg[16:0]),
+                        .p_i(p_reg[16:0]),
+                        
+                        
+                        .a_shift_o(a_shift),
+                        
+                        .b_fetch_o(b_fetch),
+                        .p_fetch_o(p_fetch),
+                        
+                        .RES_push_o(RES_push),
+                        
+                        .done_o(FIOS_done),
+                        
+                        
+                        .RES_o(RES)
+                    
             );
             
-        end else begin
+        end else if (CASCADE == 1) begin
         
-        
-            FIOS_NOCASC #(.CONFIGURATION(CONFIGURATION), .ABREG(ABREG), .MREG(MREG), .CREG(CREG), .s(s), .LOOP_DELAY(LOOP_DELAY)) FIOS_NOCASC_inst (
-                .clock_i(clock_i), .reset_i(reset_i),
+            FIOS_CASC_3A #(.CONFIGURATION(CONFIGURATION), .ABREG(ABREG), .MREG(MREG), .s(s), .LOOP_DELAY(LOOP_DELAY), .COL_LENGTH(COL_LENGTH), .DSP_PRIMITIVE(DSP_PRIMITIVE)) FIOS_CASC_3A_inst (
+                        .clock_i(clock_i), .reset_i(reset_i),
+                        
+                        .start_i(FIOS_start),
                 
-                .start_i(FIOS_start),
-        
-                
-                .p_prime_0_i(p_prime_0_reg),
-                
-                .a_i(a_reg[PE_NB*17-1:0]),
-                
-                .b_i(b_reg[16:0]),
-                .p_i(p_reg[16:0]),
-                
-                
-                .a_shift_o(a_shift),
-                
-                .b_fetch_o(b_fetch),
-                .p_fetch_o(p_fetch),
-                
-                .RES_push_o(RES_push),
-                
-                .done_o(FIOS_done),
-                
-                
-                .RES_o(RES)
-            
+                        
+                        .p_prime_0_i(p_prime_0_reg),
+                        
+                        .a_i(a_reg[PE_NB*17-1:0]),
+                        
+                        .b_i(b_reg[16:0]),
+                        .p_i(p_reg[16:0]),
+                        
+                        
+                        .a_shift_o(a_shift),
+                        
+                        .b_fetch_o(b_fetch),
+                        .p_fetch_o(p_fetch),
+                        
+                        .RES_push_o(RES_push),
+                        
+                        .done_o(FIOS_done),
+                        
+                        
+                        .RES_o(RES)
+                    
             );
         
         end
-    
+        
+        end else begin
+            
+        if (CASCADE == 0) begin
+            
+            FIOS_NOCASC_4A #(.CONFIGURATION(CONFIGURATION), .ABREG(ABREG), .MREG(MREG), .CREG(CREG), .s(s), .LOOP_DELAY(LOOP_DELAY), .DSP_PRIMITIVE(DSP_PRIMITIVE)) FIOS_NOCASC_4A_inst (
+                        .clock_i(clock_i), .reset_i(reset_i),
+                        
+                        .start_i(FIOS_start),
+                
+                        
+                        .p_prime_0_i(p_prime_0_reg),
+                        
+                        .a_i(a_reg[PE_NB*17-1:0]),
+                        
+                        .b_i(b_reg[16:0]),
+                        .p_i(p_reg[16:0]),
+                        
+                        
+                        .a_shift_o(a_shift),
+                        
+                        .b_fetch_o(b_fetch),
+                        .p_fetch_o(p_fetch),
+                        
+                        .RES_push_o(RES_push),
+                        
+                        .done_o(FIOS_done),
+                        
+                        
+                        .RES_o(RES)
+                    
+            );
+        
+        end else if (CASCADE == 1) begin
+        
+            FIOS_CASC_4A #(.CONFIGURATION(CONFIGURATION), .ABREG(ABREG), .MREG(MREG), .s(s), .LOOP_DELAY(LOOP_DELAY), .COL_LENGTH(COL_LENGTH), .DSP_PRIMITIVE(DSP_PRIMITIVE)) FIOS_CASC_4A_inst (
+                        .clock_i(clock_i), .reset_i(reset_i),
+                        
+                        .start_i(FIOS_start),
+                
+                        
+                        .p_prime_0_i(p_prime_0_reg),
+                        
+                        .a_i(a_reg[PE_NB*17-1:0]),
+                        
+                        .b_i(b_reg[16:0]),
+                        .p_i(p_reg[16:0]),
+                        
+                        
+                        .a_shift_o(a_shift),
+                        
+                        .b_fetch_o(b_fetch),
+                        .p_fetch_o(p_fetch),
+                        
+                        .RES_push_o(RES_push),
+                        
+                        .done_o(FIOS_done),
+                        
+                        
+                        .RES_o(RES)
+                    
+            );
+        
+        end
+        
+        end
+        
     endgenerate
 
 
