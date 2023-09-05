@@ -21,12 +21,13 @@ module top_bd_wrapper_tb #(parameter WIDTH = 256,
                HALF_PERIOD = PERIOD/2;
 
     localparam int ADDER_TYPE = 0;
+    localparam int WORD_WIDTH = 17;
 
     // Bit width of the operands and number of 17 bits blocks
     // required to slice operands. Note that WIDTH+2 is used
     // instead of WIDTH to compute s in order not to have to perform
     // the final subtraction in the Montgomery Algorithm (see paper).
-    localparam s = (WIDTH+1)/17+1;
+    localparam s = (WIDTH+1)/WORD_WIDTH+1;
 
     wire FIOS_start;
      
@@ -128,16 +129,16 @@ module top_bd_wrapper_tb #(parameter WIDTH = 256,
     
     // The following registers are used to store input operands and expect result read from test vector files prior
     // being stored in the BRAM.
-    reg [16:0] p_prime_0_reg;
-    reg [s*17-1:0] p_reg;
-    reg [s*17-1:0] a_reg;
-    reg [s*17-1:0] b_reg;
+    reg [WORD_WIDTH-1:0] p_prime_0_reg;
+    reg [s*WORD_WIDTH-1:0] p_reg;
+    reg [s*WORD_WIDTH-1:0] a_reg;
+    reg [s*WORD_WIDTH-1:0] b_reg;
 
-    reg [s*17-1:0] verif_res = 0;
+    reg [s*WORD_WIDTH-1:0] verif_res = 0;
 
     // The following register and register enable signals are used to load the result computed by the FIOS module from the BRAM
     // and compare it with the expected result.
-    reg [s*17-1:0] res;
+    reg [s*WORD_WIDTH-1:0] res;
     reg en_res = 0;
     reg en_res_reg;
 
@@ -148,7 +149,7 @@ module top_bd_wrapper_tb #(parameter WIDTH = 256,
     // The computed result is loaded from BRAM using a shift register.
     always @ (posedge clock_i) begin
         if(en_res_reg)
-            res <= {BRAM_PORTA_i_dout[16:0], res[s*17-1:17]};
+            res <= {BRAM_PORTA_i_dout[WORD_WIDTH-1:0], res[s*WORD_WIDTH-1:WORD_WIDTH]};
     end
 
 
@@ -177,7 +178,7 @@ module top_bd_wrapper_tb #(parameter WIDTH = 256,
         // Generate test vector file name and open test vector file.
         $sformat(WIDTH_str, "%0d", WIDTH);
         
-        fd = $fopen({"sim_",WIDTH_str, ".txt"}, "r");
+        fd = $fopen({"sim_",WIDTH_str, (WORD_WIDTH == 23) ? "_23" : "", ".txt"}, "r");
         
         BRAM_PORTA_en_i <= 1;
         
@@ -230,17 +231,17 @@ module top_bd_wrapper_tb #(parameter WIDTH = 256,
         #PERIOD;
         for(int i = 0; i < s;i++) begin
             BRAM_PORTA_i_addr <= (i+1) << 2;
-            BRAM_PORTA_i_din <= p_reg[17*i+:17];
+            BRAM_PORTA_i_din <= p_reg[WORD_WIDTH*i+:WORD_WIDTH];
             #PERIOD;        
         end
         for(int i = 0; i < s;i++) begin
             BRAM_PORTA_i_addr <= (i+s+1) << 2;
-            BRAM_PORTA_i_din <= a_reg[17*i+:17];
+            BRAM_PORTA_i_din <= a_reg[WORD_WIDTH*i+:WORD_WIDTH];
             #PERIOD;        
         end
         for(int i = 0; i < s;i++) begin
             BRAM_PORTA_i_addr <= (i+2*s+1) << 2;
-            BRAM_PORTA_i_din <= b_reg[17*i+:17];
+            BRAM_PORTA_i_din <= b_reg[WORD_WIDTH*i+:WORD_WIDTH];
             #PERIOD;
         end
         

@@ -9,10 +9,14 @@ if __name__ == "__main__":
 						help = "Bit-width of the test vectors.")
 	parser.add_argument("-n", metavar = "NUMBER", type = int, default = None,
 						help = "Number of test vectors.")
+	parser.add_argument ("-ww", metavar = "WORD WIDTH", type = int, default = 17,
+	                    help = "Word width.")
 	parser.add_argument("--name", metavar = "FILE NAME", type = str, default = None,
 						help = "Name of test vector file. Default : sim_<WIDTH>")
 						
 	args = parser.parse_args()
+
+	w = args.ww
 
 	WIDTH = args.w
 
@@ -39,13 +43,13 @@ if __name__ == "__main__":
 			b = random.randrange(2**(WIDTH-1), n)
 		
 		
-			res_arr, n_prime_0 = FIOS(n, a, b, w = 17, WIDTH = WIDTH)
+			res_arr, n_prime_0 = FIOS(n, a, b, w = w, WIDTH = WIDTH)
 			
 			res = 0
 		
 			for j in range(len(res_arr)):
 				
-				res += res_arr[j] << (j*17)
+				res += res_arr[j] << (j*w)
 			
 			test_file.write("n\n" + hex(n)[2:] + "\n\nn_prime_0\n" + hex(n_prime_0)[2:]
 							+ "\n\na\n" + hex(a)[2:] + "\n\nb\n" + hex(b)[2:] + "\n\nres\n"

@@ -1,6 +1,7 @@
 module DSP58_NOCASC_4A #(parameter ABREG = 1,
                          MREG = 1,
                          CREG = 1,
+                         WORD_WIDTH = 23,
                localparam DSP_REG_LEVEL = 1+ABREG+MREG) (
                
     input clock_i,
@@ -14,17 +15,17 @@ module DSP58_NOCASC_4A #(parameter ABREG = 1,
     input [8:0] OPMODE_i,
 
 
-    input [16:0] A_i,
-    input [16:0] B_i,
-    input [33:0] C_i,
+    input [WORD_WIDTH-1:0] A_i,
+    input [WORD_WIDTH-1:0] B_i,
+    input [2*WORD_WIDTH-1:0] C_i,
 
 
-    output [33:0] P_o
+    output [2*WORD_WIDTH-1:0] P_o
     
     );
 
 
-    wire [47:0] P;
+    wire [57:0] P;
 
 DSP58 #(
       // Feature Control Attributes: Data Path Selection
@@ -87,9 +88,9 @@ DSP58 #(
       .NEGATE(0),                 // 3-bit input: Negates the input of the multiplier
       .OPMODE(OPMODE_i),                 // 9-bit input: Operation mode
       // Data inputs: Data Ports
-      .A({{17{1'b0}},A_i}),                           // 34-bit input: A data
-      .B({{7{1'b0}},B_i}),                           // 24-bit input: B data
-      .C({{10{1'b0}},C_i}),                           // 58-bit input: C data
+      .A({{11{1'b0}},A_i}),                           // 34-bit input: A data
+      .B({{1{1'b0}},B_i}),                           // 24-bit input: B data
+      .C({{(58-2*WORD_WIDTH){1'b0}},C_i}),                           // 58-bit input: C data
       .CARRYIN(0),               // 1-bit input: Carry-in
       .D(),                           // 27-bit input: D data
       // Reset/Clock Enable inputs: Reset/Clock Enable Inputs
@@ -119,6 +120,6 @@ DSP58 #(
       .RSTP(1'b0)                      // 1-bit input: Reset for PREG
    );
    
-   assign P_o = P[33:0];
+   assign P_o = P[2*WORD_WIDTH-1:0];
    
 endmodule

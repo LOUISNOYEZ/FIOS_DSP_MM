@@ -14,6 +14,7 @@ proc init_gui { IPINST } {
   ipgui::add_param $IPINST -name "CASCADE" -parent ${Montgomery_Multiplier_parameters}
   ipgui::add_param $IPINST -name "LOOP_DELAY" -parent ${Montgomery_Multiplier_parameters}
   ipgui::add_param $IPINST -name "DSP_PRIMITIVE" -parent ${Montgomery_Multiplier_parameters} -widget comboBox
+  ipgui::add_param $IPINST -name "WORD_WIDTH" -parent ${Montgomery_Multiplier_parameters}
   ipgui::add_param $IPINST -name "COL_LENGTH" -parent ${Montgomery_Multiplier_parameters}
 
   #Adding Group
@@ -64,6 +65,25 @@ proc update_PARAM_VALUE.LOOP_DELAY { PARAM_VALUE.LOOP_DELAY PARAM_VALUE.CASCADE 
 
 proc validate_PARAM_VALUE.LOOP_DELAY { PARAM_VALUE.LOOP_DELAY } {
 	# Procedure called to validate LOOP_DELAY
+	return true
+}
+
+proc update_PARAM_VALUE.WORD_WIDTH { PARAM_VALUE.WORD_WIDTH PARAM_VALUE.DSP_PRIMITIVE } {
+	# Procedure called to update WORD_WIDTH when any of the dependent parameters in the arguments change
+	
+	set WORD_WIDTH ${PARAM_VALUE.WORD_WIDTH}
+	set DSP_PRIMITIVE ${PARAM_VALUE.DSP_PRIMITIVE}
+	set values(DSP_PRIMITIVE) [get_property value $DSP_PRIMITIVE]
+	if { [gen_USERPARAMETER_WORD_WIDTH_ENABLEMENT $values(DSP_PRIMITIVE)] } {
+		set_property enabled true $WORD_WIDTH
+	} else {
+		set_property enabled false $WORD_WIDTH
+		set_property value [gen_USERPARAMETER_WORD_WIDTH_VALUE $values(DSP_PRIMITIVE)] $WORD_WIDTH
+	}
+}
+
+proc validate_PARAM_VALUE.WORD_WIDTH { PARAM_VALUE.WORD_WIDTH } {
+	# Procedure called to validate WORD_WIDTH
 	return true
 }
 
@@ -174,5 +194,10 @@ proc update_MODELPARAM_VALUE.DSP_PRIMITIVE { MODELPARAM_VALUE.DSP_PRIMITIVE PARA
 proc update_MODELPARAM_VALUE.COL_LENGTH { MODELPARAM_VALUE.COL_LENGTH PARAM_VALUE.COL_LENGTH } {
 	# Procedure called to set VHDL generic/Verilog parameter value(s) based on TCL parameter value
 	set_property value [get_property value ${PARAM_VALUE.COL_LENGTH}] ${MODELPARAM_VALUE.COL_LENGTH}
+}
+
+proc update_MODELPARAM_VALUE.WORD_WIDTH { MODELPARAM_VALUE.WORD_WIDTH PARAM_VALUE.WORD_WIDTH } {
+	# Procedure called to set VHDL generic/Verilog parameter value(s) based on TCL parameter value
+	set_property value [get_property value ${PARAM_VALUE.WORD_WIDTH}] ${MODELPARAM_VALUE.WORD_WIDTH}
 }
 

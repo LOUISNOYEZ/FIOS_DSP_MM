@@ -57,17 +57,21 @@ if __name__ == "__main__":
 
 	WIDTH = 256
 
-	n = random_prime(2**WIDTH, False, 2**(WIDTH-1))
+	#n = random_prime(2**WIDTH, False, 2**(WIDTH-1))
+	n = 0xdeff56be6dd2e6d34e53ada28258d16c918a518c1f2a2c762c225e8a123e06db
 	
 	print("WIDTH : ", WIDTH)
 	
-	a = random.randrange(2**(WIDTH-1), n)
-	b = random.randrange(2**(WIDTH-1), n)
+	#a = random.randrange(2**(WIDTH-1), n)
+	a = 0xd6b97cb59877623d3bd5875ed3df85b545e0b05aa44b049f29bb42d85f3686fb
+	#b = random.randrange(2**(WIDTH-1), n)
+	b = 0xd45b69694579dfd1031097841dec1d8a3a7ffc7dcfd41f2ac17b84425ab18690
 	
 
 	WIDTH = WIDTH + 2
 
-	w = 17
+	#w = 17
+	w = 23
 	
 	s = (WIDTH-1)//w + 1
 

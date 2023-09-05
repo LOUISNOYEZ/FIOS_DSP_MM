@@ -9,8 +9,9 @@ module FIOS_MM_CASC_3A #(parameter  string CONFIGURATION = "EXPAND",
                             int    MREG = 1,
                             int    CREG = 1,
                             int    RES_DELAY = 0,
+                            int    WORD_WIDTH = 17,
                             int    s = 8,
-                            int COL_LENGTH = 168,
+                            int    COL_LENGTH = 168,
                  localparam int   DSP_REG_LEVEL = ABREG+MREG+1,
                  localparam int   PE_DELAY = (DSP_REG_LEVEL == 1) ? 6+RES_DELAY :
                                              (DSP_REG_LEVEL == 2) ? 7+RES_DELAY :
@@ -41,37 +42,37 @@ module FIOS_MM_CASC_3A #(parameter  string CONFIGURATION = "EXPAND",
                 
         input         FIOS_input_sel_i,
         
-        input  [16:0] p_prime_0_i,
+        input  [WORD_WIDTH-1:0] p_prime_0_i,
         
-        input  [PE_NB*17-1:0] a_i,
+        input  [PE_NB*WORD_WIDTH-1:0] a_i,
     
-        input  [16:0] b_i,
-        input  [16:0] p_i,
+        input  [WORD_WIDTH-1:0] b_i,
+        input  [WORD_WIDTH-1:0] p_i,
         
         
-        output [16:0] RES_o
+        output [WORD_WIDTH-1:0] RES_o
         
     );
     
     
-    reg [16:0] p_prime_0     [0:PE_NB];
+    reg [WORD_WIDTH-1:0] p_prime_0     [0:PE_NB];
     
-    reg [16:0] b             [0:PE_NB];
-    reg [16:0] p             [0:PE_NB];
+    reg [WORD_WIDTH-1:0] b             [0:PE_NB];
+    reg [WORD_WIDTH-1:0] p             [0:PE_NB];
     
-    reg [16:0] C_input       [0:PE_NB];
-    reg [16:0] C_input_1_delay [0:PE_NB];
-    reg [16:0] C_input_2_delay [0:PE_NB];
+    reg [WORD_WIDTH-1:0] C_input       [0:PE_NB];
+    reg [WORD_WIDTH-1:0] C_input_1_delay [0:PE_NB];
+    reg [WORD_WIDTH-1:0] C_input_2_delay [0:PE_NB];
    
-    reg [16:0] RES           [0:PE_NB-1];
-    reg [16:0] RES_delay     [0:PE_NB-1];
+    reg [WORD_WIDTH-1:0] RES           [0:PE_NB-1];
+    reg [WORD_WIDTH-1:0] RES_delay     [0:PE_NB-1];
     
     reg [47:0] PCIN          [0:PE_NB-1];
     reg [47:0] PCOUT         [0:PE_NB-1];
     
-    reg [16:0] PCIN_cancel [0:PE_NB-1];
+    reg [WORD_WIDTH-1:0] PCIN_cancel [0:PE_NB-1];
     
-    reg [16:0] last_C_delay;
+    reg [WORD_WIDTH-1:0] last_C_delay;
             
     assign p_prime_0[0] = p_prime_0_i;
     
@@ -134,7 +135,7 @@ module FIOS_MM_CASC_3A #(parameter  string CONFIGURATION = "EXPAND",
         for (i = 0; i < PE_NB; i++) begin
         
             // Propagation of the operands is delayed between PE in order to synchronize them.
-            delay_line #(.WIDTH(34), .DELAY((i == PE_NB-1) || (i == COL_LENGTH-1) ? PE_DELAY+1+LOOP_DELAY : PE_DELAY)) operands_delay_line_inst (
+            delay_line #(.WIDTH(2*WORD_WIDTH), .DELAY((i == PE_NB-1) || (i == COL_LENGTH-1) ? PE_DELAY+1+LOOP_DELAY : PE_DELAY)) operands_delay_line_inst (
                 
                 .clock_i(clock_i), .reset_i(1'b0), .en_i( 1'b1),
                 
@@ -159,7 +160,7 @@ module FIOS_MM_CASC_3A #(parameter  string CONFIGURATION = "EXPAND",
                 if (i == PE_NB-1) begin
                 
                 
-                   delay_line #(.WIDTH(17), .DELAY(LOOP_DELAY)) last_C_dly_inst (
+                   delay_line #(.WIDTH(WORD_WIDTH), .DELAY(LOOP_DELAY)) last_C_dly_inst (
                         .clock_i(clock_i), .reset_i(1'b0), .en_i(1'b1),
                         
                         .data_i(RES[i]),
@@ -183,7 +184,7 @@ module FIOS_MM_CASC_3A #(parameter  string CONFIGURATION = "EXPAND",
     
                 if (DSP_REG_LEVEL == 2 || DSP_REG_LEVEL == 3) begin
                     
-                    reg [16:0] RES_delay;
+                    reg [WORD_WIDTH-1:0] RES_delay;
                     
                     if (i == PE_NB-1) begin
                     
@@ -221,7 +222,7 @@ module FIOS_MM_CASC_3A #(parameter  string CONFIGURATION = "EXPAND",
                 if (i == COL_LENGTH-1) begin
                 
                 
-                   delay_line #(.WIDTH(17), .DELAY(LOOP_DELAY)) last_C_dly_inst (
+                   delay_line #(.WIDTH(WORD_WIDTH), .DELAY(LOOP_DELAY)) last_C_dly_inst (
                         .clock_i(clock_i), .reset_i(1'b0), .en_i(1'b1),
                         
                         .data_i(RES[i]),
@@ -245,7 +246,7 @@ module FIOS_MM_CASC_3A #(parameter  string CONFIGURATION = "EXPAND",
     
                 if (DSP_REG_LEVEL == 2 || DSP_REG_LEVEL == 3) begin
                     
-                    reg [16:0] RES_delay;
+                    reg [WORD_WIDTH-1:0] RES_delay;
                     
                     if (i == COL_LENGTH-1) begin
                     
@@ -280,7 +281,7 @@ module FIOS_MM_CASC_3A #(parameter  string CONFIGURATION = "EXPAND",
             
             end
     
-            PE_CASC_3A #(.ABREG(ABREG), .MREG(MREG), .FIRST(((i == 0 || i == COL_LENGTH) ? 1 : 0)), .DSP_PRIMITIVE(DSP_PRIMITIVE)) PE_CASC_3A_inst (
+            PE_CASC_3A #(.ABREG(ABREG), .MREG(MREG), .FIRST(((i == 0 || i == COL_LENGTH) ? 1 : 0)), .DSP_PRIMITIVE(DSP_PRIMITIVE), .WORD_WIDTH(WORD_WIDTH)) PE_CASC_3A_inst (
                 .clock_i(clock_i),
                 
                 .a_reg_en_i(a_reg_en_i[i]),
@@ -304,18 +305,18 @@ module FIOS_MM_CASC_3A #(parameter  string CONFIGURATION = "EXPAND",
                 
                 .p_prime_0_i(p_prime_0[i]),
                 
-                .a_i(a_i[i*17+:17]),
+                .a_i(a_i[i*WORD_WIDTH+:WORD_WIDTH]),
                 
                 .b_i(b[i]),
                 .p_i(p[i]),
                 
                 .C_i((CONFIGURATION == "FOLD") ? C_input[i] : 
-                (i == 0) ? 17'b0 : (i == COL_LENGTH) ? (OPMODE_i[COL_LENGTH][4] == 1'b1) ? last_C_delay : C_input[COL_LENGTH] : C_input[i]),
+                (i == 0) ? {WORD_WIDTH{1'b0}} : (i == COL_LENGTH) ? (OPMODE_i[COL_LENGTH][4] == 1'b1) ? last_C_delay : C_input[COL_LENGTH] : C_input[i]),
                 .C_input_1_delay_i(C_input_1_delay[i]),
                 .C_input_2_delay_i(C_input_2_delay[i]),
                 
                 .PCIN_i(PCIN[i]),
-                .PCIN_cancel_i((i == 0) || (i == COL_LENGTH) ? 17'b0 : PCIN_cancel[i-1]),
+                .PCIN_cancel_i((i == 0) || (i == COL_LENGTH) ? {WORD_WIDTH{1'b0}} : PCIN_cancel[i-1]),
                 
                 .p_prime_0_o(p_prime_0[i+1]),
                 

@@ -16,8 +16,9 @@ module MM_top_v_wrapper #(// Bit width of the operands and number of 17 bits blo
                                   integer CASCADE = 0,
                                   integer LOOP_DELAY = 0,
                                   integer WIDTH = 256,
+                                  integer WORD_WIDTH = 17,
                                   integer COL_LENGTH = 168,
-                       localparam integer s = ((WIDTH+1)/17+1))
+                       localparam integer s = ((WIDTH+1)/WORD_WIDTH+1))
     (
     input clock_i, reset_i,
     
@@ -57,10 +58,10 @@ module MM_top_v_wrapper #(// Bit width of the operands and number of 17 bits blo
 	wire BRAM_we;
 
     
-    wire [16:0] BRAM_din;
+    wire [WORD_WIDTH-1:0] BRAM_din;
     
     
-    MM_top #(.CONFIGURATION(CONFIGURATION == 1 ? "FOLD" : "EXPAND"), .ABREG(ABREG), .MREG(MREG), .CREG(CREG), .CASCADE(CASCADE), .LOOP_DELAY(LOOP_DELAY), .s(s), 
+    MM_top #(.CONFIGURATION(CONFIGURATION == 1 ? "FOLD" : "EXPAND"), .ABREG(ABREG), .MREG(MREG), .CREG(CREG), .CASCADE(CASCADE), .LOOP_DELAY(LOOP_DELAY), .s(s), .WORD_WIDTH(WORD_WIDTH),
     .DSP_PRIMITIVE(DSP_PRIMITIVE == 0 ? "generic_DSP_3A" :
                    DSP_PRIMITIVE == 1 ? "DSP48" :
                    DSP_PRIMITIVE == 2 ? "DSP48E" :
@@ -74,7 +75,7 @@ module MM_top_v_wrapper #(// Bit width of the operands and number of 17 bits blo
         .start_i(start_i),
         
         
-        .BRAM_dout_i(BRAM_dout_i[16:0]),
+        .BRAM_dout_i(BRAM_dout_i[WORD_WIDTH-1:0]),
         
         .BRAM_din_o(BRAM_din),
         
@@ -99,7 +100,7 @@ module MM_top_v_wrapper #(// Bit width of the operands and number of 17 bits blo
     assign BRAM_we_o = {4{BRAM_we}};
     
     
-    assign BRAM_din_o = {15'b0, BRAM_din};
+    assign BRAM_din_o = {{(32-WORD_WIDTH){1'b0}}, BRAM_din};
 
 
 endmodule

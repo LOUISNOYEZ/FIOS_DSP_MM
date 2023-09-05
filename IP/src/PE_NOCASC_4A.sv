@@ -6,6 +6,7 @@ module PE_NOCASC_4A #(parameter  string DSP_PRIMITIVE = "DSP48E2",
                        int   MREG = 1,
                        int   CREG = 1,
                        int   FIRST = 0,
+                       int   WORD_WIDTH = 17,
             localparam int   DSP_REG_LEVEL = 1+ABREG+MREG,
             localparam int   FEEDBACK_DELAY = (DSP_REG_LEVEL == 1) ? 1 :
                                               (DSP_REG_LEVEL == 2) ? 2 :
@@ -28,21 +29,21 @@ module PE_NOCASC_4A #(parameter  string DSP_PRIMITIVE = "DSP48E2",
     input         RES_delay_en_i,
 
     
-    input  [16:0] p_prime_0_i,
+    input  [WORD_WIDTH-1:0] p_prime_0_i,
     
-    input  [16:0] a_i,
+    input  [WORD_WIDTH-1:0] a_i,
     
-    input  [16:0] b_i,
-    input  [16:0] p_i,
+    input  [WORD_WIDTH-1:0] b_i,
+    input  [WORD_WIDTH-1:0] p_i,
     
 
-    input  [16:0] C_i,
-    input  [16:0] C_input_1_delay_i,
-    input  [16:0] C_input_2_delay_i,
+    input  [WORD_WIDTH-1:0] C_i,
+    input  [WORD_WIDTH-1:0] C_input_1_delay_i,
+    input  [WORD_WIDTH-1:0] C_input_2_delay_i,
         
-    output [16:0] p_prime_0_o,
+    output [WORD_WIDTH-1:0] p_prime_0_o,
     
-    output [16:0] RES_o
+    output [WORD_WIDTH-1:0] RES_o
     
     );
 
@@ -78,20 +79,20 @@ module PE_NOCASC_4A #(parameter  string DSP_PRIMITIVE = "DSP48E2",
 
     // Declaration of data signals
  
-    reg [16:0] p_prime_0_reg;
+    reg [WORD_WIDTH-1:0] p_prime_0_reg;
 
-    reg [16:0] a_reg;
+    reg [WORD_WIDTH-1:0] a_reg;
 
-    reg [16:0] m_reg;
+    reg [WORD_WIDTH-1:0] m_reg;
 
     
-    wire [33:0] RES;
+    wire [2*WORD_WIDTH-1:0] RES;
 
-    reg [33:0] RES_delay;    
+    reg [2*WORD_WIDTH-1:0] RES_delay;    
 
-    reg [16:0] C_reg;
+    reg [WORD_WIDTH-1:0] C_reg;
     
-    wire [33:0] corrected_RES;
+    wire [2*WORD_WIDTH-1:0] corrected_RES;
 
     // Signals p_prime_0_i, a_i, b_i and p_i are registered for better performance.
 
@@ -111,7 +112,7 @@ module PE_NOCASC_4A #(parameter  string DSP_PRIMITIVE = "DSP48E2",
     always @ (posedge clock_i) begin
     
         if (m_reg_en_reg)
-            m_reg <= RES[16:0];
+            m_reg <= RES[WORD_WIDTH-1:0];
         else
             m_reg <= m_reg;
     
@@ -120,15 +121,15 @@ module PE_NOCASC_4A #(parameter  string DSP_PRIMITIVE = "DSP48E2",
 
     // Declaration and multiplexing of DSP data input signals.
 
-    reg [16:0] DSP_A_input;
-    reg [16:0] DSP_B_input;
-    reg [33:0] DSP_C_input;
+    reg [WORD_WIDTH-1:0] DSP_A_input;
+    reg [WORD_WIDTH-1:0] DSP_B_input;
+    reg [2*WORD_WIDTH-1:0] DSP_C_input;
 
-    reg [16:0] RES_reg;
+    reg [WORD_WIDTH-1:0] RES_reg;
     
     always @ (posedge clock_i) begin
 
-        RES_reg <= RES[16:0];
+        RES_reg <= RES[WORD_WIDTH-1:0];
     
     end
 
@@ -136,7 +137,7 @@ module PE_NOCASC_4A #(parameter  string DSP_PRIMITIVE = "DSP48E2",
     
         case (mux_A_sel_reg)
             0       : DSP_A_input <= a_reg;
-            1       : DSP_A_input <= RES[16:0];
+            1       : DSP_A_input <= RES[WORD_WIDTH-1:0];
             2       : DSP_A_input <= m_reg;
             default : DSP_A_input <= 0;
         endcase
@@ -254,7 +255,7 @@ module PE_NOCASC_4A #(parameter  string DSP_PRIMITIVE = "DSP48E2",
             always @ (posedge clock_i)
                 m_reg_en_reg_delay <= m_reg_en_reg;
                 
-            reg [34:0] RES_delay_prime;
+            reg [2*WORD_WIDTH:0] RES_delay_prime;
             
             always @ (posedge clock_i)
                 RES_delay_prime <= RES;
@@ -267,7 +268,7 @@ module PE_NOCASC_4A #(parameter  string DSP_PRIMITIVE = "DSP48E2",
             
         end else begin
         
-            delay_line #(.WIDTH(34), .DELAY(FEEDBACK_DELAY-CREG)) RES_delay_inst (
+            delay_line #(.WIDTH(2*WORD_WIDTH), .DELAY(FEEDBACK_DELAY-CREG)) RES_delay_inst (
                 .clock_i(clock_i), .reset_i(1'b0), .en_i((DSP_REG_LEVEL == 1) ? 1'b1 : RES_delay_en_reg),
                 
                 .data_i(RES),
@@ -284,7 +285,7 @@ module PE_NOCASC_4A #(parameter  string DSP_PRIMITIVE = "DSP48E2",
 
     assign p_prime_0_o = p_prime_0_reg;
 
-    assign RES_o = RES[16:0];
+    assign RES_o = RES[WORD_WIDTH-1:0];
     
     
 endmodule

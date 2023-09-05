@@ -8,6 +8,7 @@ module FIOS_MM_NOCASC_3A #(parameter  string CONFIGURATION = "EXPAND",
                             int    ABREG = 1,
                             int    MREG = 1,
                             int    CREG = 1,
+                            int    WORD_WIDTH = 17,
                             int    s = 8,
                  localparam int   DSP_REG_LEVEL = ABREG+MREG+1,
                  localparam int   PE_DELAY = (CREG ? 1 : 0) + ((DSP_REG_LEVEL == 1) ? 6 :
@@ -39,30 +40,30 @@ module FIOS_MM_NOCASC_3A #(parameter  string CONFIGURATION = "EXPAND",
                 
         input         FIOS_input_sel_i,
         
-        input  [16:0] p_prime_0_i,
+        input  [WORD_WIDTH-1:0] p_prime_0_i,
         
-        input  [PE_NB*17-1:0] a_i,
+        input  [PE_NB*WORD_WIDTH-1:0] a_i,
     
-        input  [16:0] b_i,
-        input  [16:0] p_i,
+        input  [WORD_WIDTH-1:0] b_i,
+        input  [WORD_WIDTH-1:0] p_i,
         
         
-        output [16:0] RES_o
+        output [WORD_WIDTH-1:0] RES_o
         
     );
     
     
-    reg [16:0] p_prime_0     [0:PE_NB];
+    reg [WORD_WIDTH-1:0] p_prime_0     [0:PE_NB];
     
-    reg [16:0] b             [0:PE_NB];
-    reg [16:0] p             [0:PE_NB];
+    reg [WORD_WIDTH-1:0] b             [0:PE_NB];
+    reg [WORD_WIDTH-1:0] p             [0:PE_NB];
     
-    reg [16:0] C_input       [0:PE_NB];
-    reg [16:0] C_input_1_delay [0:PE_NB];
-    reg [16:0] C_input_2_delay [0:PE_NB];
+    reg [WORD_WIDTH-1:0] C_input       [0:PE_NB];
+    reg [WORD_WIDTH-1:0] C_input_1_delay [0:PE_NB];
+    reg [WORD_WIDTH-1:0] C_input_2_delay [0:PE_NB];
    
-    reg [16:0] RES           [0:PE_NB-1];
-    reg [16:0] RES_delay     [0:PE_NB-1];
+    reg [WORD_WIDTH-1:0] RES           [0:PE_NB-1];
+    reg [WORD_WIDTH-1:0] RES_delay     [0:PE_NB-1];
             
     assign p_prime_0[0] = p_prime_0_i;
     
@@ -125,7 +126,7 @@ module FIOS_MM_NOCASC_3A #(parameter  string CONFIGURATION = "EXPAND",
         for (i = 0; i < PE_NB; i++) begin
         
             // Propagation of the operands is delayed between PE in order to synchronize them.
-            delay_line #(.WIDTH(34), .DELAY(PE_DELAY)) operands_delay_line_inst (
+            delay_line #(.WIDTH(2*WORD_WIDTH), .DELAY(PE_DELAY)) operands_delay_line_inst (
                 
                 .clock_i(clock_i), .reset_i(1'b0), .en_i( 1'b1),
                 
@@ -145,7 +146,7 @@ module FIOS_MM_NOCASC_3A #(parameter  string CONFIGURATION = "EXPAND",
             // register is used on this path since the first PE in the chain cannot use the
             // PCIN cascade signal to immediately use the previous result.
 
-            delay_line #(.WIDTH(17), .DELAY(LOOP_DELAY)) RES_dly_inst (
+            delay_line #(.WIDTH(WORD_WIDTH), .DELAY(LOOP_DELAY)) RES_dly_inst (
                 .clock_i(clock_i), .reset_i(1'b0), .en_i(1'b1),
                 
                 .data_i(RES[i]),
@@ -213,7 +214,7 @@ module FIOS_MM_NOCASC_3A #(parameter  string CONFIGURATION = "EXPAND",
                 
                 .p_prime_0_i(p_prime_0[i]),
                 
-                .a_i(a_i[i*17+:17]),
+                .a_i(a_i[i*WORD_WIDTH+:WORD_WIDTH]),
                 
                 .b_i(b[i]),
                 .p_i(p[i]),

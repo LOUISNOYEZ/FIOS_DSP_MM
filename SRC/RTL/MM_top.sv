@@ -8,6 +8,7 @@ module MM_top #(parameter  string CONFIGURATION = "FOLD",
                         int    CREG = 1,
                         int    LOOP_DELAY = 0,
                         int    CASCADE = 0,
+                        int    WORD_WIDTH = 17,
                         int    s = 8,
                         int COL_LENGTH = 168,
              localparam int    DSP_REG_LEVEL = ABREG+MREG+1,
@@ -28,9 +29,9 @@ module MM_top #(parameter  string CONFIGURATION = "FOLD",
         input start_i,
         
         
-        input [16:0] BRAM_dout_i, // Data Out Bus (optional)
+        input [WORD_WIDTH-1:0] BRAM_dout_i, // Data Out Bus (optional)
 
-        output [16:0] BRAM_din_o, // Data In Bus (optional)
+        output [WORD_WIDTH-1:0] BRAM_din_o, // Data In Bus (optional)
     
         output BRAM_we_o, // Byte Enables (optional)
     
@@ -58,10 +59,10 @@ module MM_top #(parameter  string CONFIGURATION = "FOLD",
     
     wire [$clog2(4*s)-1:0] BRAM_addr;
     
-    wire [16:0] RES;
+    wire [WORD_WIDTH-1:0] RES;
     
 
-    reg [16:0] BRAM_dout_reg;
+    reg [WORD_WIDTH-1:0] BRAM_dout_reg;
     
     always @ (posedge clock_i)
         BRAM_dout_reg <= BRAM_dout_i;
@@ -73,7 +74,7 @@ module MM_top #(parameter  string CONFIGURATION = "FOLD",
     // into the PEs using the b_fetch, p_fetch and a_shift signals.
     
     reg p_prime_0_reg_en;
-    reg [16:0] p_prime_0_reg;
+    reg [WORD_WIDTH-1:0] p_prime_0_reg;
     
     always @ (posedge clock_i) begin
         
@@ -87,21 +88,21 @@ module MM_top #(parameter  string CONFIGURATION = "FOLD",
     end
     
     reg p_reg_en;
-    reg [s*17-1:0] p_reg;
+    reg [s*WORD_WIDTH-1:0] p_reg;
     
     always @ (posedge clock_i) begin
         
         if (reset_i)
             p_reg <= 0;
         else if (p_reg_en || p_fetch)
-            p_reg <= {BRAM_dout_reg, p_reg[s*17-1:17]};
+            p_reg <= {BRAM_dout_reg, p_reg[s*WORD_WIDTH-1:WORD_WIDTH]};
         else
             p_reg <= p_reg;
     
     end
     
     reg a_reg_en;
-    reg [s*17-1:0] a_reg;
+    reg [s*WORD_WIDTH-1:0] a_reg;
     
     generate
         if(CONFIGURATION == "FOLD") begin
@@ -111,9 +112,9 @@ module MM_top #(parameter  string CONFIGURATION = "FOLD",
                 if (reset_i)
                     a_reg <= 0;
                 else if (a_reg_en)
-                    a_reg <= {BRAM_dout_reg, a_reg[s*17-1:17]};
+                    a_reg <= {BRAM_dout_reg, a_reg[s*WORD_WIDTH-1:WORD_WIDTH]};
                 else if (a_shift)
-                    a_reg <= {{PE_NB{17'd0}}, a_reg[s*17-1:PE_NB*17]};
+                    a_reg <= {{PE_NB{{WORD_WIDTH{1'd0}}}}, a_reg[s*WORD_WIDTH-1:PE_NB*WORD_WIDTH]};
                 else
                     a_reg <= a_reg;
             
@@ -126,7 +127,7 @@ module MM_top #(parameter  string CONFIGURATION = "FOLD",
                 if (reset_i)
                     a_reg <= 0;
                 else if (a_reg_en)
-                    a_reg <= {BRAM_dout_reg, a_reg[s*17-1:17]};
+                    a_reg <= {BRAM_dout_reg, a_reg[s*WORD_WIDTH-1:WORD_WIDTH]};
                 else
                     a_reg <= a_reg;
             
@@ -136,14 +137,14 @@ module MM_top #(parameter  string CONFIGURATION = "FOLD",
     endgenerate
     
     reg b_reg_en;
-    reg [s*17-1:0] b_reg;
+    reg [s*WORD_WIDTH-1:0] b_reg;
     
     always @ (posedge clock_i) begin
         
         if (reset_i)
             b_reg <= 0;
         else if (b_reg_en || b_fetch)
-            b_reg <= {BRAM_dout_reg, b_reg[s*17-1:17]};
+            b_reg <= {BRAM_dout_reg, b_reg[s*WORD_WIDTH-1:WORD_WIDTH]};
         else
             b_reg <= b_reg;
     
@@ -153,14 +154,14 @@ module MM_top #(parameter  string CONFIGURATION = "FOLD",
     // once result sections are provided. Result sections
     // are then loaded by the top_control FSM into the bridge BRAM.
 
-    reg [s*17-1:0] RES_reg;
+    reg [s*WORD_WIDTH-1:0] RES_reg;
 
     always @ (posedge clock_i) begin
     
         if (reset_i)
             RES_reg <= 0;
         else if (BRAM_we_o || RES_push)
-            RES_reg <= {RES, RES_reg[s*17-1:17]};
+            RES_reg <= {RES, RES_reg[s*WORD_WIDTH-1:WORD_WIDTH]};
         else
             RES_reg <= RES_reg;
     
@@ -175,7 +176,7 @@ module MM_top #(parameter  string CONFIGURATION = "FOLD",
     
         if (CASCADE == 0) begin
     
-            FIOS_NOCASC_3A #(.CONFIGURATION(CONFIGURATION), .ABREG(ABREG), .MREG(MREG), .CREG(CREG), .s(s), .LOOP_DELAY(LOOP_DELAY), .DSP_PRIMITIVE(DSP_PRIMITIVE)) FIOS_NOCASC_3A_inst (
+            FIOS_NOCASC_3A #(.CONFIGURATION(CONFIGURATION), .ABREG(ABREG), .MREG(MREG), .CREG(CREG), .s(s), .LOOP_DELAY(LOOP_DELAY), .DSP_PRIMITIVE(DSP_PRIMITIVE), .WORD_WIDTH(WORD_WIDTH)) FIOS_NOCASC_3A_inst (
                         .clock_i(clock_i), .reset_i(reset_i),
                         
                         .start_i(FIOS_start),
@@ -183,10 +184,10 @@ module MM_top #(parameter  string CONFIGURATION = "FOLD",
                         
                         .p_prime_0_i(p_prime_0_reg),
                         
-                        .a_i(a_reg[PE_NB*17-1:0]),
+                        .a_i(a_reg[PE_NB*WORD_WIDTH-1:0]),
                         
-                        .b_i(b_reg[16:0]),
-                        .p_i(p_reg[16:0]),
+                        .b_i(b_reg[WORD_WIDTH-1:0]),
+                        .p_i(p_reg[WORD_WIDTH-1:0]),
                         
                         
                         .a_shift_o(a_shift),
@@ -205,7 +206,7 @@ module MM_top #(parameter  string CONFIGURATION = "FOLD",
             
         end else if (CASCADE == 1) begin
         
-            FIOS_CASC_3A #(.CONFIGURATION(CONFIGURATION), .ABREG(ABREG), .MREG(MREG), .CREG(CREG), .s(s), .LOOP_DELAY(LOOP_DELAY), .COL_LENGTH(COL_LENGTH), .DSP_PRIMITIVE(DSP_PRIMITIVE)) FIOS_CASC_3A_inst (
+            FIOS_CASC_3A #(.CONFIGURATION(CONFIGURATION), .ABREG(ABREG), .MREG(MREG), .s(s), .LOOP_DELAY(LOOP_DELAY), .COL_LENGTH(COL_LENGTH), .DSP_PRIMITIVE(DSP_PRIMITIVE), .WORD_WIDTH(WORD_WIDTH)) FIOS_CASC_3A_inst (
                         .clock_i(clock_i), .reset_i(reset_i),
                         
                         .start_i(FIOS_start),
@@ -213,10 +214,10 @@ module MM_top #(parameter  string CONFIGURATION = "FOLD",
                         
                         .p_prime_0_i(p_prime_0_reg),
                         
-                        .a_i(a_reg[PE_NB*17-1:0]),
+                        .a_i(a_reg[PE_NB*WORD_WIDTH-1:0]),
                         
-                        .b_i(b_reg[16:0]),
-                        .p_i(p_reg[16:0]),
+                        .b_i(b_reg[WORD_WIDTH-1:0]),
+                        .p_i(p_reg[WORD_WIDTH-1:0]),
                         
                         
                         .a_shift_o(a_shift),
@@ -239,7 +240,7 @@ module MM_top #(parameter  string CONFIGURATION = "FOLD",
             
         if (CASCADE == 0) begin
             
-            FIOS_NOCASC_4A #(.CONFIGURATION(CONFIGURATION), .ABREG(ABREG), .MREG(MREG), .CREG(CREG), .s(s), .LOOP_DELAY(LOOP_DELAY), .DSP_PRIMITIVE(DSP_PRIMITIVE)) FIOS_NOCASC_4A_inst (
+            FIOS_NOCASC_4A #(.CONFIGURATION(CONFIGURATION), .ABREG(ABREG), .MREG(MREG), .CREG(CREG), .s(s), .LOOP_DELAY(LOOP_DELAY), .DSP_PRIMITIVE(DSP_PRIMITIVE), .WORD_WIDTH(WORD_WIDTH)) FIOS_NOCASC_4A_inst (
                         .clock_i(clock_i), .reset_i(reset_i),
                         
                         .start_i(FIOS_start),
@@ -247,10 +248,10 @@ module MM_top #(parameter  string CONFIGURATION = "FOLD",
                         
                         .p_prime_0_i(p_prime_0_reg),
                         
-                        .a_i(a_reg[PE_NB*17-1:0]),
+                        .a_i(a_reg[PE_NB*WORD_WIDTH-1:0]),
                         
-                        .b_i(b_reg[16:0]),
-                        .p_i(p_reg[16:0]),
+                        .b_i(b_reg[WORD_WIDTH-1:0]),
+                        .p_i(p_reg[WORD_WIDTH-1:0]),
                         
                         
                         .a_shift_o(a_shift),
@@ -269,7 +270,7 @@ module MM_top #(parameter  string CONFIGURATION = "FOLD",
         
         end else if (CASCADE == 1) begin
         
-            FIOS_CASC_4A #(.CONFIGURATION(CONFIGURATION), .ABREG(ABREG), .MREG(MREG), .CREG(CREG), .s(s), .LOOP_DELAY(LOOP_DELAY), .COL_LENGTH(COL_LENGTH), .DSP_PRIMITIVE(DSP_PRIMITIVE)) FIOS_CASC_4A_inst (
+            FIOS_CASC_4A #(.CONFIGURATION(CONFIGURATION), .ABREG(ABREG), .MREG(MREG), .s(s), .LOOP_DELAY(LOOP_DELAY), .COL_LENGTH(COL_LENGTH), .DSP_PRIMITIVE(DSP_PRIMITIVE), .WORD_WIDTH(WORD_WIDTH)) FIOS_CASC_4A_inst (
                         .clock_i(clock_i), .reset_i(reset_i),
                         
                         .start_i(FIOS_start),
@@ -277,10 +278,10 @@ module MM_top #(parameter  string CONFIGURATION = "FOLD",
                         
                         .p_prime_0_i(p_prime_0_reg),
                         
-                        .a_i(a_reg[PE_NB*17-1:0]),
+                        .a_i(a_reg[PE_NB*WORD_WIDTH-1:0]),
                         
-                        .b_i(b_reg[16:0]),
-                        .p_i(p_reg[16:0]),
+                        .b_i(b_reg[WORD_WIDTH-1:0]),
+                        .p_i(p_reg[WORD_WIDTH-1:0]),
                         
                         
                         .a_shift_o(a_shift),
@@ -333,6 +334,6 @@ module MM_top #(parameter  string CONFIGURATION = "FOLD",
 
     assign BRAM_addr_o = {{(32-$clog2(4*s)){1'b0}}, BRAM_addr};
 
-    assign BRAM_din_o = RES_reg[16:0];
+    assign BRAM_din_o = RES_reg[WORD_WIDTH-1:0];
 
 endmodule

@@ -8,6 +8,7 @@ module FIOS_NOCASC_4A #(parameter  string CONFIGURATION = "EXPAND",
                          int    ABREG = 1,
                          int    MREG = 1,
                          int    CREG = 1,
+                         int    WORD_WIDTH = 17,
                          int    s = 8,
               localparam int   DSP_REG_LEVEL = ABREG+MREG+1,
               localparam int   PE_DELAY = (DSP_REG_LEVEL == 1) ? 5 + (CREG ? 1 : 0):
@@ -21,12 +22,12 @@ module FIOS_NOCASC_4A #(parameter  string CONFIGURATION = "EXPAND",
     input start_i,
 
     
-    input [16:0] p_prime_0_i,
+    input [WORD_WIDTH-1:0] p_prime_0_i,
     
-    input [PE_NB*17-1:0] a_i,
+    input [PE_NB*WORD_WIDTH-1:0] a_i,
     
-    input [16:0] b_i,
-    input [16:0] p_i,
+    input [WORD_WIDTH-1:0] b_i,
+    input [WORD_WIDTH-1:0] p_i,
     
     
     output reg a_shift_o,   
@@ -39,7 +40,7 @@ module FIOS_NOCASC_4A #(parameter  string CONFIGURATION = "EXPAND",
     output reg done_o,
     
 
-    output [16:0] RES_o
+    output [WORD_WIDTH-1:0] RES_o
 
     );
     
@@ -349,7 +350,7 @@ module FIOS_NOCASC_4A #(parameter  string CONFIGURATION = "EXPAND",
     endgenerate
     
     
-    FIOS_MM_NOCASC_4A #(.CONFIGURATION(CONFIGURATION), .ABREG(ABREG), .MREG(MREG), .CREG(CREG), .s(s), .LOOP_DELAY(LOOP_DELAY), .DSP_PRIMITIVE(DSP_PRIMITIVE)) FIOS_MM_NOCASC_4A_inst (
+    FIOS_MM_NOCASC_4A #(.CONFIGURATION(CONFIGURATION), .ABREG(ABREG), .MREG(MREG), .CREG(CREG), .s(s), .LOOP_DELAY(LOOP_DELAY), .DSP_PRIMITIVE(DSP_PRIMITIVE), .WORD_WIDTH(WORD_WIDTH)) FIOS_MM_NOCASC_4A_inst (
         
         .clock_i(clock_i),
         
